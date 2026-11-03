@@ -20,11 +20,12 @@ HƯỚNG DẪN CÁC THÀNH VIÊN ĐƯA CODE LÊN GITHUB
 ### Mọi người lưu ý
 Làm tới đâu Commit tới đó (Commit thường xuyên)
 **KHÔNG dồn hết code cả đồ án rồi mới đẩy lên 1 lần duy nhất vào cuối kỳ.**
-Mỗi khi viết xong 1 hàm, tạo xong 1 giao diện HTML, hoặc sửa xong 1 lỗi Thực hiện Commit và Push ngay.
-Quy tắc đặt tên nội dung Commit:Tên commit phải ghi rõ TÊN CHỨC NĂNG bạn vừa thêm hoặc chỉnh sửa.
-Cú pháp mẫu: 
-feat: <Tên chức năng bạn đã làm> hoặc fix: <Lỗi bạn vừa sửa>
-Ví dụ chuẩn:
-feat: Thêm giao diện Quản lý phòn
-gfeat: Thêm chức năng Tìm kiếm khách hàng theo SĐT
-feat: Tạo API Đặt phòng và Check-infix: Sửa lỗi không tính được tổng tiền hóa đơn
+* Mỗi khi viết xong 1 hàm, tạo xong 1 giao diện HTML, hoặc sửa xong 1 lỗi Thực hiện Commit và Push ngay.
+* Quy tắc đặt tên nội dung Commit:Tên commit phải ghi rõ TÊN CHỨC NĂNG bạn vừa thêm hoặc chỉnh sửa.
+**Cú pháp mẫu:** 
+  * feat: <Tên chức năng bạn đã làm>
+  * hoặc fix: <Lỗi bạn vừa sửa>
+**Ví dụ:**
+* feat: Thêm giao diện Quản lý phòn
+* gfeat: Thêm chức năng Tìm kiếm khách hàng theo SĐT
+* feat: Tạo API Đặt phòng và Check-infix: Sửa lỗi không tính được tổng tiền hóa đơn
