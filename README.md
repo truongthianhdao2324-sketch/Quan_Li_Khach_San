@@ -1,4 +1,4 @@
-Nhóm Đồ Án Quản Lý Khách Sạn
+
 HƯỚNG DẪN CÁC THÀNH VIÊN ĐƯA CODE LÊN GITHUB
 ### Đưa / Cập nhật Code trực tiếp trên Web GitHub
 1. **Chuyển sang nhánh (branch) của bạn:**
