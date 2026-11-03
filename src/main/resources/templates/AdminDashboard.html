@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ Thống Quản Trị - Admin Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            color: #5c5055;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: #fde2e4;
+            color: #6b4c58;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(253, 226, 228, 0.4);
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 19px;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #593945;
+        }
+
+        .sidebar a {
+            color: #6b4c58;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #ff758c;
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .header-title h1 {
+            font-size: 26px;
+            color: #593945;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #fae1dd;
+            box-shadow: 0 4px 20px rgba(250, 225, 221, 0.5);
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #bfa5ad;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .stat-card p {
+            font-size: 28px;
+            font-weight: bold;
+            color: #593945;
+            margin: 10px 0 0 0;
+        }
+
+        .recent-section {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #fae1dd;
+            box-shadow: 0 4px 20px rgba(250, 225, 221, 0.5);
+        }
+
+        .recent-section h2 {
+            font-size: 18px;
+            color: #593945;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>👑 QUẢN TRỊ VIÊN</h2>
+    <a th:href="@{/admin/dashboard}" class="active">📊 Thống kê doanh thu</a>
+    <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+    <a th:href="@{/dang-nhap}" style="margin-top: auto; color: #ff4d6d;">Đăng xuất</a>
+</div>
+
+<div class="main-content">
+    <div class="header-title" style="margin-bottom: 25px;">
+        <h1>Bảng Điều Khiển Tổng Quan (Admin Dashboard)</h1>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Tổng doanh thu tháng này</h3>
+            <p style="color: #ff758c;">48,500,000 đ</p>
+        </div>
+        <div class="stat-card">
+            <h3>Tổng số nhân viên</h3>
+            <p>6 Người</p>
+        </div>
+        <div class="stat-card">
+            <h3>Tổng phòng khách sạn</h3>
+            <p>8 Phòng</p>
+        </div>
+    </div>
+
+    <div class="recent-section">
+        <h2>Hoạt động hệ thống gần đây</h2>
+        <p style="color: #bfa5ad; font-style: italic;">Hệ thống đang hoạt động ổn định, dữ liệu đồng bộ thời gian thực từ phân hệ Lễ tân.</p>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng Nhập - Hệ Thống Quản Lý Khách Sạn</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #5c5055;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(250, 225, 221, 0.7);
+            border: 1px solid #fae1dd;
+            width: 360px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #593945;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #fae1dd;
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            background-color: #fffafb;
+            font-size: 14px;
+        }
+
+        .btn-submit {
+            background-color: #ff758c;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #ff5c77;
+        }
+
+        .error-msg {
+            color: #ff4d6d;
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>🌸 Đăng Nhập Hệ Thống</h2>
+    <div th:if="${error}" class="error-msg" th:text="${error}"></div>
+    <form th:action="@{/xu-ly-dang-nhap}" method="post">
+        <div class="form-group">
+            <label>Tên đăng nhập:</label>
+            <input type="text" name="username" placeholder="Nhập tài khoản..." required />
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu:</label>
+            <input type="password" name="password" placeholder="Nhập mật khẩu..." required />
+        </div>
+        <button type="submit" class="btn-submit">Đăng Nhập</button>
+    </form>
+</div>
+
+</body>
+</html>
