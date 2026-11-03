@@ -26,6 +26,7 @@ Làm tới đâu Commit tới đó (Commit thường xuyên)
   * feat: <Tên chức năng bạn đã làm>
   * hoặc fix: <Lỗi bạn vừa sửa>
 **Ví dụ:**
-* feat: Thêm giao diện Quản lý phòn
-* gfeat: Thêm chức năng Tìm kiếm khách hàng theo SĐT
-* feat: Tạo API Đặt phòng và Check-infix: Sửa lỗi không tính được tổng tiền hóa đơn
+* feat: Thêm giao diện Quản lý phòng
+* feat: Thêm chức năng Tìm kiếm khách hàng theo SĐT
+* feat: Tạo API Đặt phòng
+* Check-infix: Sửa lỗi không tính được tổng tiền hóa đơn
