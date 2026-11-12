@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/dichvu :: head('Danh mục dịch vụ')}"></head><body>
+<header th:replace="~{fragments/dichvu :: nav}"></header>
+<main class="container py-4">
+  <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
+    <div><h1>Danh mục dịch vụ</h1><p class="text-secondary mb-0">Đơn giá hiện tại và tình trạng cung cấp của khách sạn.</p></div>
+    <a th:if="${session.user.vaiTro == 'ADMIN'}" th:href="@{/dich-vu/them}" class="btn btn-rose">+ Thêm dịch vụ</a>
+  </div>
+  <div th:replace="~{fragments/dichvu :: alerts}"></div>
+  <section class="card"><div class="card-body p-4">
+    <form method="get" th:action="@{/dich-vu}" class="row g-2 mb-4">
+      <div class="col-md-5"><label for="q" class="form-label">Tên dịch vụ</label><input id="q" name="q" th:value="${q}" class="form-control" placeholder="Tìm nước uống, giặt ủi…"></div>
+      <div class="col-6 col-md-3"><label for="sort" class="form-label">Sắp xếp theo</label><select id="sort" name="sort" class="form-select"><option value="tenDichVu" th:selected="${sort == 'tenDichVu'}">Tên dịch vụ</option><option value="giaDichVu" th:selected="${sort == 'giaDichVu'}">Đơn giá</option><option value="maDichVu" th:selected="${sort == 'maDichVu'}">Mã dịch vụ</option></select></div>
+      <div class="col-6 col-md-2"><label for="dir" class="form-label">Thứ tự</label><select id="dir" name="dir" class="form-select"><option value="asc" th:selected="${dir != 'desc'}">Tăng dần</option><option value="desc" th:selected="${dir == 'desc'}">Giảm dần</option></select></div>
+      <div class="col-md-2 d-flex align-items-end"><button class="btn btn-rose w-100">Tìm kiếm</button></div>
+    </form>
+    <p class="small text-secondary d-md-none">Vuốt ngang bảng để xem đầy đủ thông tin và thao tác.</p>
+    <div class="table-responsive"><table class="table align-middle">
+      <thead><tr><th>Mã</th><th>Dịch vụ</th><th class="text-end">Đơn giá</th><th>Trạng thái</th><th th:if="${session.user.vaiTro == 'ADMIN'}">Thao tác</th></tr></thead>
+      <tbody><tr th:each="item : ${page.content}">
+        <td th:text="'DV' + ${item.maDichVu}"></td><td class="fw-semibold" th:text="${item.tenDichVu}"></td>
+        <td class="text-end money" th:text="${@tienViet.format(item.giaDichVu)}"></td>
+        <td><span th:class="${item.dangKinhDoanh} ? 'badge text-bg-success' : 'badge text-bg-secondary'" th:text="${item.dangKinhDoanh} ? 'Đang cung cấp' : 'Ngừng cung cấp'"></span></td>
+        <td th:if="${session.user.vaiTro == 'ADMIN'}"><div class="d-flex gap-2"><a class="btn btn-sm btn-outline-secondary" th:href="@{/dich-vu/{id}/sua(id=${item.maDichVu})}">Sửa</a>
+          <form method="post" th:action="@{/dich-vu/{id}/xoa(id=${item.maDichVu})}" onsubmit="return confirm('Xóa dịch vụ này? Dịch vụ đã có lịch sử sẽ được bảo vệ và không thể xóa.');"><input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}"><button class="btn btn-sm btn-outline-danger">Xóa</button></form></div></td>
+      </tr><tr th:if="${page.empty}"><td colspan="5" class="text-center text-secondary py-5">Không có dịch vụ phù hợp.</td></tr></tbody>
+    </table></div>
+    <nav aria-label="Phân trang dịch vụ" class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="small text-secondary" th:text="${page.totalElements} + ' dịch vụ · Trang ' + ${page.number + 1} + '/' + ${page.totalPages == 0 ? 1 : page.totalPages}"></span>
+      <div class="d-flex gap-2"><a th:if="${page.hasPrevious()}" class="btn btn-outline-secondary btn-sm" th:href="@{/dich-vu(q=${q},page=${page.number - 1},sort=${sort},dir=${dir})}">← Trước</a><a th:if="${page.hasNext()}" class="btn btn-outline-secondary btn-sm" th:href="@{/dich-vu(q=${q},page=${page.number + 1},sort=${sort},dir=${dir})}">Sau →</a></div>
+    </nav>
+  </div></section>
+</main><footer th:replace="~{fragments/dichvu :: footer}"></footer></body></html>

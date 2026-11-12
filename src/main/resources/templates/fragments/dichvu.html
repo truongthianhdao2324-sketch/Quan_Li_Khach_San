@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · Quản lý khách sạn'">Dịch vụ</title>
+  <link rel="stylesheet" th:href="@{/vendor/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/dichvu.css}">
+</head><body>
+<header th:fragment="nav" class="hotel-nav">
+  <a class="hotel-brand" th:href="${session.user.vaiTro == 'ADMIN'} ? @{/admin/dashboard} : @{/letan/dashboard}">🌸 Khách sạn <small>Quản lý dịch vụ</small></a>
+  <nav aria-label="Điều hướng chính" class="d-flex flex-wrap gap-2">
+    <a th:href="@{/dich-vu}" class="btn btn-light btn-sm">Danh mục dịch vụ</a>
+    <a th:if="${session.user.vaiTro == 'RECEPTIONIST'}" th:href="@{/dich-vu/goi}" class="btn btn-rose btn-sm">Gọi dịch vụ</a>
+    <a th:href="@{/dich-vu/lich-su}" class="btn btn-light btn-sm">Lịch sử sử dụng</a>
+    <a th:href="@{/dang-xuat}" class="btn btn-outline-secondary btn-sm">Đăng xuất</a>
+  </nav>
+</header>
+<div th:fragment="alerts" aria-live="polite">
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+</div>
+<footer th:fragment="footer" class="container py-4 text-secondary small">Hệ thống nội bộ khách sạn · Dịch vụ phát sinh</footer>
+</body></html>

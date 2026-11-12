@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/dichvu :: head('Thêm và sửa dịch vụ')}"></head><body>
+<header th:replace="~{fragments/dichvu :: nav}"></header>
+<main class="container py-4"><div class="form-card mx-auto">
+  <a th:href="@{/dich-vu}" class="text-secondary">← Danh mục dịch vụ</a><h1 class="mt-3 mb-4" th:text="${id == null} ? 'Thêm dịch vụ' : 'Sửa dịch vụ'"></h1>
+  <div th:replace="~{fragments/dichvu :: alerts}"></div>
+  <section class="card"><div class="card-body p-4">
+    <form method="post" th:action="${id == null} ? @{/dich-vu/luu} : @{/dich-vu/{id}/luu(id=${id})}" th:object="${form}">
+      <input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}">
+      <div class="mb-3"><label class="form-label" for="tenDichVu">Tên dịch vụ</label><input id="tenDichVu" class="form-control" th:field="*{tenDichVu}" maxlength="100" required><p class="field-error" th:if="${#fields.hasErrors('tenDichVu')}" th:errors="*{tenDichVu}"></p></div>
+      <div class="mb-3"><label class="form-label" for="giaDichVu">Đơn giá (đồng)</label><input id="giaDichVu" type="number" class="form-control" th:field="*{giaDichVu}" min="0" max="9999999999.99" step="0.01" required><p class="field-error" th:if="${#fields.hasErrors('giaDichVu')}" th:errors="*{giaDichVu}"></p><div class="form-text">Giá 0 dành cho dịch vụ miễn phí. Thay đổi giá không ảnh hưởng khoản đã gọi.</div></div>
+      <div class="form-check mb-4"><input id="dangKinhDoanh" class="form-check-input" type="checkbox" th:field="*{dangKinhDoanh}"><label class="form-check-label" for="dangKinhDoanh">Đang cung cấp</label></div>
+      <div class="d-flex gap-2"><button class="btn btn-rose">Lưu dịch vụ</button><a class="btn btn-outline-secondary" th:href="@{/dich-vu}">Hủy</a></div>
+    </form>
+  </div></section>
+</div></main><footer th:replace="~{fragments/dichvu :: footer}"></footer></body></html>
