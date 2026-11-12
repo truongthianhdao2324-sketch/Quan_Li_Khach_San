@@ -30,3 +30,8 @@ Làm tới đâu Commit tới đó (Commit thường xuyên)
 * feat: Thêm chức năng Tìm kiếm khách hàng theo SĐT
 * feat: Tạo API Đặt phòng
 * Check-infix: Sửa lỗi không tính được tổng tiền hóa đơn
+
+
+## Phần dịch vụ và TCP — TV3
+
+Chức năng, cách chạy và kết quả kiểm thử: [Hướng dẫn TV3](docs/README_TV3.md). Điểm ghép đặt phòng, hóa đơn và database: [Bàn giao tích hợp](docs/BAN_GIAO_TICH_HOP.md).
