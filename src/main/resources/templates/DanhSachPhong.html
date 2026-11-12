@@ -106,7 +106,7 @@
             margin-top: 15px;
             outline: none;
             transition: all 0.2s;
-            width: 180px;
+            width: 175px;
             height: 28px;
         }
 
@@ -318,23 +318,6 @@
             margin-bottom: 25px;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         /* THỐNG KÊ PHÒNG */
         .room-statistics {
             display: grid;
@@ -343,7 +326,6 @@
             margin-top: 25px;
             margin-bottom: 25px;
         }
-
 
         .total-room-card {
             grid-column: 1 / -1;
@@ -373,11 +355,6 @@
             font-weight: 700;
             margin: 10px 0;
         }
-
-
-
-
-
 
         /* THỐNG KÊ CHI TIẾT */
         .stat-detail-card {
@@ -424,6 +401,39 @@
 
             .total-room-card {
                 grid-column: auto;
+            }
+        }
+        /*thông báo thêm, sửa, xóa*/
+        .toast-message {
+              position: fixed;
+              top: 20px;
+              right: 25px;
+              z-index: 9999;
+              padding: 14px 20px;
+              border-radius: 8px;
+              color: white;
+              font-weight: 600;
+              min-width: 280px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              animation: hienThongBao 0.3s ease;
+          }
+
+        .toast-message.success {
+            background-color: #198754;
+        }
+
+        .toast-message.error {
+            background-color: #dc3545;
+        }
+
+        @keyframes hienThongBao {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
             }
         }
     </style>
@@ -498,7 +508,7 @@
 
             <!-- Chỉ Admin nhìn thấy nút thêm phòng -->
             <a th:if="${laAdmin}"
-               href="#"
+               th:href="@{/khachhang/phong/them}"
                class="btn-add">
                 + Thêm phòng
             </a>
@@ -565,11 +575,17 @@
 
         </form>
 
-        <!-- THÔNG BÁO -->
-        <p th:if="${param.thongBao != null}"
-           th:text="${param.thongBao[0]}"
-           style="color: #ff758c; font-weight: 600;">
-        </p>
+        <!-- THÔNG BÁO THÀNH CÔNG -->
+        <div th:if="${thongBao}"
+             class="toast-message success"
+             th:text="${thongBao}">
+        </div>
+
+        <!-- THÔNG BÁO LỖI -->
+        <div th:if="${loi}"
+             class="toast-message error"
+             th:text="${loi}">
+        </div>
 
         <!-- DANH SÁCH PHÒNG DẠNG CARD -->
         <div class="room-grid">
@@ -662,22 +678,30 @@
                     <div th:if="${laAdmin}"
                          style="display: flex; gap: 8px; margin-top: 10px;">
 
-                        <button type="button"
-                                class="filter-btn"
-                                style="flex: 1; cursor: pointer;">
+                        <!-- Nút sửa -->
+                        <a th:href="@{/khachhang/phong/sua/{soPhong}(soPhong=${p.soPhong})}"
+                           class="filter-btn"
+                           style="flex: 1; text-align: center; text-decoration: none;">
                             ✏️ Sửa
-                        </button>
+                        </a>
 
-                        <button type="button"
-                                class="filter-btn"
-                                style="flex: 1; cursor: pointer; color: #c62828;">
-                            🗑 Xóa
-                        </button>
+                        <!-- Nút xóa -->
+                        <form th:action="@{/khachhang/phong/xoa/{soPhong}(soPhong=${p.soPhong})}"
+                              method="post"
+                              style="flex: 1; margin: 0;"
+                              th:attr="onsubmit=|return confirm('Bạn có chắc chắn muốn xóa phòng ${p.soPhong} không?')|">
+
+                            <button type="submit"
+                                    class="filter-btn"
+                                    style="width: 100%; cursor: pointer; color: #c62828;">
+                                🗑 Xóa
+                            </button>
+
+                        </form>
 
                     </div>
 
                 </div>
-
             </div>
 
             <!-- KHÔNG CÓ DỮ LIỆU -->
@@ -687,10 +711,28 @@
             </div>
 
         </div>
+    </div>
+
+        </div>
 
     </div>
 
+
 </div>
 
+
+
+<script>
+    setTimeout(function () {
+        document.querySelectorAll('.toast-message').forEach(function (item) {
+            item.style.transition = 'opacity 0.5s';
+            item.style.opacity = '0';
+
+            setTimeout(function () {
+                item.remove();
+            }, 500);
+        });
+    }, 3000);
+</script>
 </body>
 </html>
