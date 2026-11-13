@@ -1,6 +1,6 @@
 # Dịch vụ khách sạn và thông báo TCP
 
-Phạm vi: thành viên 3. Mã được chuẩn bị trên nhánh TV3, lấy nền main cdca6ca ngày 13/11/2026. Không đưa module hóa đơn TV4 hoặc module phòng TV2 vào phần nguồn triển khai TV3.
+Phần TV3 gồm quản lý dịch vụ, ghi nhận dịch vụ theo lượt ở và gửi thông báo TCP đến các client phục vụ.
 
 ## Chức năng
 
@@ -21,7 +21,7 @@ $env:JAVA_HOME = 'C:/Program Files/Java/jdk-17'
 ./mvnw.cmd test
 ```
 
-Kết quả kiểm tra ngày 13/11/2026: 23 kiểm thử TV3 đạt, không lỗi hoặc bỏ qua. Kết quả tóm tắt tại KET_QUA_TV3.json; kết quả đầy đủ sau khi chạy nằm trong target/surefire-reports. Kiểm thử tự dùng H2 riêng trong RAM, không truy cập database nhóm. Có kiểm tra 16 yêu cầu cùng mã, 8 yêu cầu khác mã đồng thời, khóa checkout, ba tiến trình client Java độc lập, lỗi mạng, CSRF và phân quyền.
+Ngày 13/11/2026: 23 kiểm thử đạt. Các trường hợp gồm gửi yêu cầu đồng thời, chống tính tiền lặp, khóa lượt ở, ba client Java độc lập, lỗi mạng và phân quyền. Kiểm thử dùng H2 trong RAM. Xem [kết quả](KET_QUA_TV3.json) hoặc `target/surefire-reports` sau khi chạy.
 
 ## Xem giao diện bằng dữ liệu mẫu
 
@@ -51,10 +51,10 @@ Sau khi compile, mở các terminal riêng tại thư mục dự án. Mỗi term
 
 Cấu hình TCP qua QLKS_SOCKET_HOST, QLKS_SOCKET_PORT, QLKS_SOCKET_TOKEN. Token nội bộ phải giống nhau giữa web, server và client. ACK xác nhận ghi tới kết nối, không xác nhận nhân viên đã đọc hoặc phục vụ. Không có lưu bền/replay khi server khởi động lại; client loại thông báo trùng trong phiên.
 
-## Database và bàn giao
+## Database
 
-Cấu hình database và driver MySQL hiện có trên main được giữ nguyên. Không chạy trực tiếp lên database nhóm chỉ để thử module mới; sử dụng preview/test trước khi nhóm trưởng ghép schema. qlks.sql của nhóm chưa có đầy đủ các cột lịch sử/khóa yêu cầu mà TV3 cần.
+Dự án giữ cấu hình MySQL hiện có của nhóm. `qlks.sql` chưa có đủ các cột mới cho lịch sử dịch vụ và mã yêu cầu, nên dùng bản xem thử ở trên trước khi ghép schema vào database chung.
 
-sql/01_create_demo.sql là script tham khảo SQL Server cho database mới, phù hợp hướng rubric; không phải bản nâng cấp database có sẵn và không tự chuyển cấu hình dự án sang SQL Server. Script đã kiểm tra riêng ở đợt trước; kiểm thử Java lần này dùng H2, chưa nghiệm thu JDBC SQL Server. Nhóm trưởng chốt hệ quản trị, hợp nhất schema và cấu hình chung trước khi chạy toàn hệ thống.
+`sql/01_create_demo.sql` tạo database SQL Server mới để chạy dữ liệu mẫu. Script đã được kiểm tra riêng; phần Java hiện được kiểm thử bằng H2, chưa chạy cùng database SQL Server của nhóm.
 
-Xem BAN_GIAO_TICH_HOP.md để ghép đặt phòng TV5, hóa đơn TV4 và phòng TV2. Phần TV3 có thể bàn giao khi TV5 chưa đẩy mã; việc nghiệm thu toàn hệ thống được thực hiện sau khi nhóm trưởng ghép các module.
+Các trường dữ liệu cần ghép với đặt phòng và hóa đơn được ghi trong [hướng dẫn ghép code](BAN_GIAO_TICH_HOP.md).

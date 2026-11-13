@@ -1,61 +1,65 @@
-# Bàn giao tích hợp phần dịch vụ
+# Ghép phần dịch vụ với các phần khác
 
-Ngày đối chiếu: 13/11/2026. Các commit nguồn lưu trong github_refs_20261113.json.
+Tài liệu dựa trên mã nhóm có ngày 13/11/2026: main `cdca6ca`, TV2 `ca6ddfb`, TV4 `f9a3daa`. Lúc kiểm tra, TV5 chưa có mã nhận phòng mới. Mã commit đầy đủ nằm trong [github_refs_20261113.json](github_refs_20261113.json).
 
-| Phần | Nguồn hiện tại | Liên quan TV3 |
-|---|---|---|
-| main | cdca6ca | Nền chung, đã có liên kết hóa đơn nhưng chưa có mã xử lý hóa đơn |
-| TV2 | ca6ddfb | Phòng; TV3 dùng khóa ngoại so_phong, không phụ thuộc RoomController |
-| TV4 | f9a3daa | Hóa đơn đọc tổng dịch vụ theo ma_dat_phong |
-| TV5 | 792a2ca | Chưa có cập nhật module nhận phòng; dùng mapping DatPhong tối thiểu để kiểm tra TV3 |
+## Ghép với đặt phòng — TV5
 
-## Hợp đồng với TV5
-
-Chỉ giữ một entity DatPhong và một DatPhongRepository. Các thuộc tính cần có:
+Phần dịch vụ dùng `DatPhong` để biết khách đang ở phòng nào. Khi ghép, dùng chung một `DatPhong` và một `DatPhongRepository` với các trường sau:
 
 | Thuộc tính | Kiểu Java | Cột |
-|---|---|---|
+| --- | --- | --- |
 | maDatPhong | Long | ma_dat_phong |
 | khachHang | ManyToOne KhachHang | ma_khach_hang |
 | phong | ManyToOne Room | so_phong |
-| soPhong | String, ánh xạ chỉ đọc | cùng cột so_phong, không ghi hai lần |
+| soPhong | String, chỉ đọc | so_phong |
 | ngayNhanPhong | LocalDateTime | ngay_nhan_phong |
 | ngayTraPhong | LocalDateTime, có thể null | ngay_tra_phong |
 | trangThai | String | trang_thai |
 
-Lượt nhận dịch vụ phải có trạng thái Đang lưu trú và chưa có ngày trả. Check-in cần lưu bản ghi dat_phong; chỉ đặt trạng thái phòng Đã có khách không tạo ra lượt ở hợp lệ cho TV3.
+`phong` ghi cột `so_phong`; thuộc tính `soPhong` chỉ đọc lại cột này. Nếu đổi tên thuộc tính khi ghép thì sửa cả các truy vấn đang dùng tên đó.
 
-Giữ các phương thức repository findDangLuuTru, findLockedById và phương thức tìm lượt đang ở theo phòng. findLockedById dùng PESSIMISTIC_WRITE trong transaction. Khi ghép mapping TV5, giữ tên thuộc tính tương ứng hoặc sửa đồng bộ các truy vấn tham chiếu. Không tạo entity thứ hai cho cùng bảng.
+Khi nhận phòng, cần lưu bản ghi `dat_phong` có khách, phòng, ngày nhận và trạng thái **Đang lưu trú**. Dịch vụ chỉ nhận yêu cầu cho lượt chưa có ngày trả phòng.
 
-## Hợp đồng với TV4
+Giữ các hàm `findDangLuuTru`, `findLockedById` và hàm tìm lượt đang ở theo số phòng. `findLockedById` khóa dòng bằng `PESSIMISTIC_WRITE` trong transaction, dùng chung với bước thanh toán bên dưới.
 
-- DichVuService.tongTienTheoLuotO(Long): BigDecimal, tổng tất cả khoản dịch vụ của đúng lượt ở, không phụ thuộc phân trang.
-- DichVuService.lichSu(Long): toàn bộ lịch sử của lượt ở, giữ tên/đơn giá lúc gọi.
-- su_dung_dich_vu.ma_dat_phong phải là khóa ngoại tới dat_phong; không cộng tiền theo số phòng hoặc giấy tờ khách.
-- Trước khi chốt hóa đơn: mở transaction, khóa lượt ở bằng DatPhongRepository.findLockedById, tính lại tiền dịch vụ từ database, lưu hóa đơn và đóng lượt ở trong cùng transaction. Không dùng số tiền từ input ẩn để chốt hóa đơn.
-- Dùng cùng thứ tự khóa: lượt ở trước; TV3 sau đó mới khóa dịch vụ. Không thêm luồng checkout bỏ qua khóa này.
+## Lấy tiền dịch vụ để tính hóa đơn — TV4
 
-Bản vá patches/TV4_ghep_dich_vu.patch dành cho nhóm trưởng sau khi lấy mã TV4 f9a3daa và TV3. Bản vá điều chỉnh kiểu tiền hóa đơn, thêm ThanhToanService, tải đủ dữ liệu hiển thị, bổ sung CSRF cho hóa đơn và tính lại tiền khi xác nhận. Không tự áp dụng vào nhánh TV4. Không áp dụng lặp nếu nhóm trưởng đã sửa các tệp tương ứng.
+Hai hàm có thể gọi từ `DichVuService`:
 
-Bản vá giữ Room.giaPhong kiểu double hiện tại của nhóm, chuyển qua BigDecimal.valueOf ở ranh giới tính hóa đơn. Việc chuyển toàn bộ tiền phòng/nhân viên sang DECIMAL và BigDecimal là quyết định dùng chung, không nằm trong nguồn TV3 đưa lên. Trong lúc nhóm chưa đổi kiểu phòng, các khoản dịch vụ vẫn dùng BigDecimal xuyên suốt.
+- `tongTienTheoLuotO(Long maDatPhong)`: trả về `BigDecimal`, tổng tiền của toàn bộ lượt ở.
+- `lichSu(Long maDatPhong)`: lấy các khoản dịch vụ kèm tên và đơn giá lúc gọi.
 
-Kiểm tra trên bản ghép riêng: 23 kiểm thử TV3 + 4 kiểm thử thanh toán, tổng 27 đạt. Bao gồm tiền phát sinh sau khi mở trang thanh toán, sửa tiền/mã hóa đơn trong POST, hai lần thanh toán đồng thời, checkout chờ khóa gọi dịch vụ, và lượt ở tiếp theo không nhận tiền cũ. Kết quả dùng H2; không thay cho nghiệm thu SQL Server chung. Bộ kiểm thử bổ sung tại kiem_thu_tich_hop/ThanhToanIntegrationTests.java chỉ đưa vào src/test sau khi ghép mã hóa đơn.
+Tiền được cộng theo `ma_dat_phong`. Khách quay lại cùng phòng sẽ có lượt ở mới và lịch sử riêng.
 
-## Hợp đồng với TV2
+Khi xác nhận thanh toán, thực hiện trong cùng một transaction:
 
-Room và RoomRepository trên nhánh TV3 vẫn giữ nguyên nền main. TV3 không thay mã CRUD, xử lý phòng hoặc kiểm thử của TV2. Nếu nhóm trưởng chuyển Room.giaPhong sang BigDecimal thì áp dụng patches/TV2_BigDecimal.patch để sửa hai biểu thức kiểm tra giá trong RoomController; không áp dụng bản vá này khi Room vẫn dùng double.
+1. Khóa lượt ở bằng `DatPhongRepository.findLockedById`.
+2. Đọc lại tổng tiền dịch vụ từ database và tính hóa đơn trên máy chủ.
+3. Lưu hóa đơn, cập nhật ngày trả và trạng thái lượt ở.
 
-Khi ghép RoomController, cần nhận thay đổi bỏ mapping danh sách phòng trong KhachHangController của TV2 để tránh trùng GET /khachhang/phong. Đây là việc ghép module phòng, không phải bổ sung controller thứ hai trong TV3.
+Phần gọi dịch vụ cũng khóa lượt ở trước, sau đó mới khóa dịch vụ. Giữ cùng thứ tự này để yêu cầu vừa gọi và thanh toán không bỏ sót tiền. Các số tiền gửi từ form chỉ để hiển thị, không dùng làm số tiền chốt hóa đơn.
 
-## Schema TV3 và ranh giới dữ liệu
+Có bản sửa tham khảo tại [patches/TV4_ghep_dich_vu.patch](patches/TV4_ghep_dich_vu.patch), dùng sau khi ghép mã TV3 và TV4 `f9a3daa`. Bản sửa thêm `ThanhToanService`, tính lại tiền khi xác nhận, dùng `BigDecimal` cho hóa đơn, tải dữ liệu khách/phòng và kiểm tra CSRF. Cần xem lại diff nếu các tệp TV4 đã được sửa tiếp.
 
-- dich_vu: ma_dich_vu, ten_dich_vu, gia_dich_vu DECIMAL(15,2), dang_kinh_doanh.
-- su_dung_dich_vu: id, ma_dich_vu, ma_dat_phong, so_phong, so_giay_to, so_luong, thanh_tien DECIMAL(15,2), ngay_su_dung, ten_dich_vu_luc_goi, don_gia_luc_goi DECIMAL(15,2), ma_yeu_cau duy nhất, nguoi_goi, da_gui_thong_bao.
-- Không xóa dây chuyền lịch sử khi xóa danh mục, khách hoặc phòng.
-- Các khoản cũ cần gắn đúng lượt ở theo khách/phòng/thời gian. Dữ liệu không đủ hoặc nhiều lượt khớp phải đối chiếu, không tự gán vào lượt đang ở mới nhất.
+`Room.giaPhong` hiện vẫn là `double`; bản sửa dùng `BigDecimal.valueOf` khi tính hóa đơn. Tiền dịch vụ dùng `BigDecimal` từ lúc lưu đến lúc cộng tổng.
 
-Cấu hình MySQL trong main khác hướng SQL Server của rubric. TV3 không tự thay cấu hình cả nhóm. Nhóm trưởng hợp nhất schema và chọn driver/cấu hình chung; script SQL Server tạo database mới đã được chuẩn bị riêng. Không bật ddl-auto lên database nhóm để thay cho việc kiểm tra và chuyển dữ liệu có sẵn.
+Bản ghép thử đạt 27 kiểm thử: 23 của TV3 và 4 kiểm tra thanh toán. Có kiểm tra gọi dịch vụ trong lúc thanh toán, bấm thanh toán lặp và khách quay lại cùng phòng. Các kiểm thử dùng H2. Tệp [ThanhToanIntegrationTests.java](kiem_thu_tich_hop/ThanhToanIntegrationTests.java) chỉ chép vào `src/test` sau khi đã ghép mã hóa đơn.
 
-## Trách nhiệm sau bàn giao
+## Lưu ý với phần phòng — TV2
 
-TV3 hoàn thành chức năng dịch vụ, lịch sử, tổng tiền, thông báo TCP và kiểm thử module. TV5 cung cấp nhận phòng/dữ liệu lượt ở; TV4 cung cấp hóa đơn; nhóm trưởng hợp nhất ứng dụng và chạy nghiệm thu đầu cuối. Khi ghép phát hiện lỗi thuộc mã TV3, sửa trong TV3; không yêu cầu TV5 tự sửa thay phần dịch vụ. Việc chưa có mã TV5 không ngăn bàn giao phạm vi TV3, nhưng chưa thể khẳng định toàn hệ thống đã hoàn tất.
+- `Room` và `RoomRepository` của TV3 đang giữ theo main.
+- Khi nhận `RoomController` của TV2, lấy cả thay đổi bỏ handler danh sách phòng trong `KhachHangController` để tránh trùng `GET /khachhang/phong`.
+- [patches/TV2_BigDecimal.patch](patches/TV2_BigDecimal.patch) chỉ cần nếu nhóm chuyển `Room.giaPhong` sang `BigDecimal`. Khi giá phòng vẫn là `double` thì giữ cách kiểm tra giá hiện tại.
+
+## Các bảng và cột phần dịch vụ cần dùng
+
+| Bảng | Các cột |
+| --- | --- |
+| dich_vu | ma_dich_vu, ten_dich_vu, gia_dich_vu, dang_kinh_doanh |
+| su_dung_dich_vu | id, ma_dich_vu, ma_dat_phong, so_phong, so_giay_to, so_luong, thanh_tien, ngay_su_dung, ten_dich_vu_luc_goi, don_gia_luc_goi, ma_yeu_cau, nguoi_goi, da_gui_thong_bao |
+
+Các cột tiền dịch vụ dùng `DECIMAL(15,2)`. `ma_yeu_cau` có ràng buộc duy nhất; `ma_dat_phong` là khóa ngoại tới lượt ở. Lịch sử cần được giữ khi ngừng cung cấp dịch vụ hoặc xử lý dữ liệu khách/phòng.
+
+Nếu có dữ liệu sử dụng dịch vụ cũ, cần đối chiếu khách, phòng và thời gian để gắn đúng lượt ở. Các dòng không đủ dữ liệu hoặc khớp nhiều lượt cần kiểm tra riêng.
+
+Main hiện cấu hình MySQL, còn khung chấm nêu SQL Server. Khi nhóm thống nhất database, cần ghép schema và cấu hình kết nối rồi chạy lại luồng nhận phòng → gọi dịch vụ → thanh toán. Script `sql/01_create_demo.sql` tạo database SQL Server mới; không dùng để nâng cấp database đang có. Kiểm tra dữ liệu trước khi đổi schema, không dựa vào `ddl-auto` để tự chuyển các dòng cũ.

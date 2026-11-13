@@ -34,4 +34,4 @@ Làm tới đâu Commit tới đó (Commit thường xuyên)
 
 ## Phần dịch vụ và TCP — TV3
 
-Chức năng, cách chạy và kết quả kiểm thử: [Hướng dẫn TV3](docs/README_TV3.md). Điểm ghép đặt phòng, hóa đơn và database: [Bàn giao tích hợp](docs/BAN_GIAO_TICH_HOP.md).
+[Cách chạy phần dịch vụ và TCP](docs/README_TV3.md) · [Ghép với đặt phòng và hóa đơn](docs/BAN_GIAO_TICH_HOP.md).
