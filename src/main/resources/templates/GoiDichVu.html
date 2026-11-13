@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/dichvu :: head('Gọi dịch vụ')}"></head><body>
+<header th:replace="~{fragments/dichvu :: nav}"></header>
+<main class="container py-4"><div class="form-card mx-auto">
+  <h1>Gọi dịch vụ cho khách</h1><p class="text-secondary">Chọn đúng lượt đang lưu trú. Khoản dịch vụ sẽ được tính vào hóa đơn của lượt này.</p>
+  <div th:replace="~{fragments/dichvu :: alerts}"></div>
+  <section class="card"><div class="card-body p-4"><form method="post" th:action="@{/dich-vu/goi}" th:object="${form}">
+    <input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}"><input type="hidden" th:field="*{maYeuCau}">
+    <div class="mb-3"><label class="form-label" for="maDatPhong">Phòng và lượt lưu trú</label><select id="maDatPhong" class="form-select" th:field="*{maDatPhong}" required><option value="">Chọn khách đang ở</option><option th:each="stay : ${luotO}" th:value="${stay.maDatPhong}" th:text="'Phòng ' + ${stay.phong.soPhong} + ' · ' + ${stay.khachHang.hoTen} + ' · Lượt #' + ${stay.maDatPhong}"></option></select><p class="field-error" th:if="${#fields.hasErrors('maDatPhong')}" th:errors="*{maDatPhong}"></p></div>
+    <div class="mb-3"><label class="form-label" for="maDichVu">Dịch vụ và đơn giá</label><select id="maDichVu" class="form-select" th:field="*{maDichVu}" required><option value="">Chọn dịch vụ</option><option th:each="item : ${dichVu}" th:value="${item.maDichVu}" th:text="${item.tenDichVu} + ' · ' + ${@tienViet.format(item.giaDichVu)}"></option></select><p class="field-error" th:if="${#fields.hasErrors('maDichVu')}" th:errors="*{maDichVu}"></p></div>
+    <div class="mb-4"><label class="form-label" for="soLuong">Số lượng</label><input id="soLuong" class="form-control" type="number" th:field="*{soLuong}" min="1" max="999" step="1" required><p class="field-error" th:if="${#fields.hasErrors('soLuong')}" th:errors="*{soLuong}"></p></div>
+    <button class="btn btn-rose w-100" th:disabled="${#lists.isEmpty(luotO) or #lists.isEmpty(dichVu)}">Xác nhận gọi dịch vụ</button>
+    <p class="form-text mt-3 mb-0">Sau khi lưu, hệ thống chuyển thông báo tới bộ phận phục vụ. Nếu mất kết nối, bạn có thể gửi lại thông báo trong lịch sử.</p>
+  </form></div></section>
+</div></main><footer th:replace="~{fragments/dichvu :: footer}"></footer></body></html>

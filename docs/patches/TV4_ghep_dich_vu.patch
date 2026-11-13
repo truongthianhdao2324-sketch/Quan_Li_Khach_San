@@ -1,0 +1,445 @@
+--- a/src/main/java/org/example/quan_li_khach_san/controller/HoaDonController.java
++++ b/src/main/java/org/example/quan_li_khach_san/controller/HoaDonController.java
+@@ -4,11 +4,9 @@
+ import org.example.quan_li_khach_san.repository.*;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.stereotype.Controller;
+-import org.springframework.transaction.annotation.Transactional;
+ import org.springframework.ui.Model;
+ import org.springframework.web.bind.annotation.*;
+ 
+-import java.time.Duration;
+ import java.time.LocalDateTime;
+ import java.util.List;
+ 
+@@ -20,10 +18,7 @@
+     private HoaDonRepository hoaDonRepository;
+ 
+     @Autowired
+-    private DatPhongRepository datPhongRepository;
+-
+-    @Autowired
+-    private RoomRepository roomRepository;
++    private org.example.quan_li_khach_san.service.ThanhToanService thanhToanService;
+ 
+     // 1. Danh sách hóa đơn
+     @GetMapping("/danhsach")
+@@ -46,63 +41,18 @@
+     // 2. Trang Check-out tính tiền theo số phòng
+     @GetMapping("/checkout/{soPhong}")
+     public String tinhTienCheckOut(@PathVariable("soPhong") String soPhong, Model model) {
+-        Room room = roomRepository.findById(soPhong).orElse(null);
+-        DatPhong datPhong = datPhongRepository
+-                .findFirstBySoPhongAndTrangThaiOrderByNgayNhanPhongDesc(soPhong, "Đang lưu trú")
+-                .orElse(null);
+-
+-        if (room == null || datPhong == null) {
+-            return "redirect:/khachhang/phong";
+-        }
+-
+-        LocalDateTime ngayNhan = datPhong.getNgayNhanPhong() != null
+-                ? datPhong.getNgayNhanPhong()
+-                : LocalDateTime.now().minusDays(1);
+-        LocalDateTime ngayTra = LocalDateTime.now();
+-        long soNgayO = Math.max(1, Duration.between(ngayNhan, ngayTra).toDays());
+-
+-        double tienPhong = soNgayO * room.getGiaPhong();
+-
+-        // Lấy tổng tiền dịch vụ thực tế từ Repository (nếu chưa có dịch vụ sẽ trả về 0)
+-        Double tienDichVuDb = hoaDonRepository.tinhTongTienDichVuTheoDatPhong(datPhong.getMaDatPhong());
+-        double tienDichVu = (tienDichVuDb != null) ? tienDichVuDb : 0.0;
+-
+-        HoaDon hoaDon = new HoaDon();
+-        hoaDon.setMaDatPhong(datPhong.getMaDatPhong());
+-        hoaDon.setDatPhong(datPhong);
+-        hoaDon.setTienPhong(tienPhong);
+-        hoaDon.setTienDichVu(tienDichVu);
+-        hoaDon.setTongTien(tienPhong + tienDichVu);
+-        hoaDon.setTrangThai("Chưa thanh toán");
+-
++        HoaDon hoaDon = thanhToanService.xemTruoc(soPhong);
+         model.addAttribute("hoaDon", hoaDon);
+-        model.addAttribute("soNgayO", soNgayO);
+-        model.addAttribute("donGiaPhong", room.getGiaPhong());
++        model.addAttribute("soNgayO", thanhToanService.soNgayTinhPhi(hoaDon.getDatPhong(), LocalDateTime.now()));
++        model.addAttribute("donGiaPhong", java.math.BigDecimal.valueOf(hoaDon.getDatPhong().getPhong().getGiaPhong()));
+         return "HoaDon";
+     }
+ 
+     // 3. Xác nhận thanh toán (Giao dịch nguyên tố @Transactional)
+     @PostMapping("/thanhtoan")
+-    @Transactional
+-    public String xacNhanThanhToan(@ModelAttribute("hoaDon") HoaDon hoaDon) {
+-        hoaDon.setNgayLap(LocalDateTime.now());
+-        hoaDon.setTrangThai("Đã thanh toán");
+-        HoaDon hoaDonDaLuu = hoaDonRepository.save(hoaDon);
+-
+-        DatPhong datPhong = datPhongRepository.findById(hoaDon.getMaDatPhong()).orElse(null);
+-        if (datPhong != null) {
+-            datPhong.setTrangThai("Đã trả phòng");
+-            datPhong.setNgayTraPhong(LocalDateTime.now());
+-            datPhongRepository.save(datPhong);
+-
+-            Room room = roomRepository.findById(datPhong.getSoPhong()).orElse(null);
+-            if (room != null) {
+-                room.setTrangThai("Còn trống");
+-                roomRepository.save(room);
+-            }
+-        }
+-
+-        return "redirect:/hoadon/chitiet/" + hoaDonDaLuu.getMaHoaDon();
++    public String xacNhanThanhToan(@RequestParam("maDatPhong") Long maDatPhong) {
++        Long id = thanhToanService.thanhToan(maDatPhong);
++        return "redirect:/hoadon/chitiet/" + id;
+     }
+ 
+     // 4. Xem biên lai chi tiết để in
+--- a/src/main/java/org/example/quan_li_khach_san/entity/HoaDon.java
++++ b/src/main/java/org/example/quan_li_khach_san/entity/HoaDon.java
+@@ -2,6 +2,7 @@
+ 
+ import jakarta.persistence.*;
+ import java.time.LocalDateTime;
++import java.math.BigDecimal;
+ 
+ @Entity
+ @Table(name = "hoa_don")
+@@ -23,14 +24,14 @@
+     @Column(name = "ngay_lap")
+     private LocalDateTime ngayLap;
+ 
+-    @Column(name = "tien_phong")
+-    private double tienPhong;
++    @Column(name = "tien_phong", precision = 15, scale = 2)
++    private BigDecimal tienPhong;
+ 
+-    @Column(name = "tien_dich_vu")
+-    private double tienDichVu;
++    @Column(name = "tien_dich_vu", precision = 15, scale = 2)
++    private BigDecimal tienDichVu;
+ 
+-    @Column(name = "tong_tien")
+-    private double tongTien;
++    @Column(name = "tong_tien", precision = 15, scale = 2)
++    private BigDecimal tongTien;
+ 
+     @Column(name = "trang_thai")
+     private String trangThai;
+@@ -49,14 +50,14 @@
+     public LocalDateTime getNgayLap() { return ngayLap; }
+     public void setNgayLap(LocalDateTime ngayLap) { this.ngayLap = ngayLap; }
+ 
+-    public double getTienPhong() { return tienPhong; }
+-    public void setTienPhong(double tienPhong) { this.tienPhong = tienPhong; }
++    public BigDecimal getTienPhong() { return tienPhong; }
++    public void setTienPhong(BigDecimal tienPhong) { this.tienPhong = tienPhong; }
+ 
+-    public double getTienDichVu() { return tienDichVu; }
+-    public void setTienDichVu(double tienDichVu) { this.tienDichVu = tienDichVu; }
++    public BigDecimal getTienDichVu() { return tienDichVu; }
++    public void setTienDichVu(BigDecimal tienDichVu) { this.tienDichVu = tienDichVu; }
+ 
+-    public double getTongTien() { return tongTien; }
+-    public void setTongTien(double tongTien) { this.tongTien = tongTien; }
++    public BigDecimal getTongTien() { return tongTien; }
++    public void setTongTien(BigDecimal tongTien) { this.tongTien = tongTien; }
+ 
+     public String getTrangThai() { return trangThai; }
+     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+--- a/src/main/java/org/example/quan_li_khach_san/repository/HoaDonRepository.java
++++ b/src/main/java/org/example/quan_li_khach_san/repository/HoaDonRepository.java
+@@ -3,6 +3,8 @@
+ import org.example.quan_li_khach_san.entity.HoaDon;
+ import org.springframework.data.jpa.repository.JpaRepository;
+ import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.jpa.repository.EntityGraph;
++import java.math.BigDecimal;
+ import org.springframework.data.repository.query.Param;
+ import org.springframework.stereotype.Repository;
+ 
+@@ -12,6 +14,10 @@
+ 
+ @Repository
+ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
++
++    @Override
++    @EntityGraph(attributePaths = {"datPhong", "datPhong.khachHang", "datPhong.phong"})
++    Optional<HoaDon> findById(Long id);
+ 
+     // ===Tìm kiếm theo từ khóa (Mã HĐ dạng HD0001, Số phòng, Tên khách) & lọc trạng thái trực tiếp trên DB===
+     @Query("""
+@@ -26,6 +32,7 @@
+         ORDER BY h.maHoaDon ASC
+     """)
+ 
++    @EntityGraph(attributePaths = {"datPhong", "datPhong.khachHang", "datPhong.phong"})
+     List<HoaDon> timKiemHoaDon(@Param("tuKhoa") String tuKhoa, @Param("trangThai") String trangThai);
+ 
+     // ==== Lấy danh sách hóa đơn theo trạng thái ====
+@@ -40,14 +47,14 @@
+ 
+     // ===Tính tổng doanh thu các hóa đơn đã thanh toán (COALESCE tránh trả về null)===
+     @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.trangThai = 'Đã thanh toán'")
+-    Double tinhTongDoanhThu();
++    BigDecimal tinhTongDoanhThu();
+ 
+     // ===Thống kê doanh thu theo khoảng thời gian =====
+     @Query("""
+         SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h
+         WHERE h.trangThai = 'Đã thanh toán' AND h.ngayLap BETWEEN :tuNgay AND :denNgay
+     """)
+-    Double tinhDoanhThuTheoThoiGian(@Param("tuNgay") LocalDateTime tuNgay,
++    BigDecimal tinhDoanhThuTheoThoiGian(@Param("tuNgay") LocalDateTime tuNgay,
+                                     @Param("denNgay") LocalDateTime denNgay);
+ 
+     // === Đếm số hóa đơn theo trạng thái====
+@@ -56,5 +63,5 @@
+     // ==== Lấy tổng tiền dịch vụ phát sinh từ bảng dịch vụ  theo mã đặt phòng====
+ 
+     @Query(value = "SELECT COALESCE(SUM(thanh_tien), 0) FROM su_dung_dich_vu WHERE ma_dat_phong = :maDatPhong", nativeQuery = true)
+-    Double tinhTongTienDichVuTheoDatPhong(@Param("maDatPhong") Long maDatPhong);
++    BigDecimal tinhTongTienDichVuTheoDatPhong(@Param("maDatPhong") Long maDatPhong);
+ }
+--- a/src/main/resources/templates/HoaDon.html
++++ b/src/main/resources/templates/HoaDon.html
+@@ -1,9 +1,9 @@
+ <!DOCTYPE html>
+ <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+ <head>
+-    <meta charset="UTF-8">
++    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Thanh toán Check-out</title>
+-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
++    <link th:href="@{/vendor/bootstrap.min.css}" rel="stylesheet">
+ </head>
+ <body class="bg-light">
+ <div class="container py-5" style="max-width: 720px;">
+@@ -49,28 +49,27 @@
+                     <td>Tiền thuê phòng</td>
+                     <td class="text-end">
+                         <span th:text="${soNgayO}">1</span> ngày ×
+-                        <span th:text="${#numbers.formatDecimal(donGiaPhong, 0, 'COMMA', 0, 'POINT')}">500,000</span> đ
++                        <span th:text="${@tienViet.format(donGiaPhong)}">500,000 đ</span>
+                     </td>
+-                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</td>
++                    <td class="text-end fw-semibold" th:text="${@tienViet.format(hoaDon.tienPhong)}">500,000 đ</td>
+                 </tr>
+                 <tr>
+                     <td>Tổng tiền dịch vụ phát sinh</td>
+                     <td class="text-end text-muted">Dịch vụ đã sử dụng tại phòng</td>
+-                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'COMMA', 0, 'POINT')} + ' đ'">150,000 đ</td>
++                    <td class="text-end fw-semibold" th:text="${@tienViet.format(hoaDon.tienDichVu)}">150,000 đ</td>
+                 </tr>
+                 <tr class="table-warning">
+                     <td colspan="2" class="fw-bold fs-5">TỔNG CỘNG THANH TOÁN</td>
+-                    <td class="text-end fw-bold fs-5 text-danger" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">650,000 đ</td>
++                    <td class="text-end fw-bold fs-5 text-danger" th:text="${@tienViet.format(hoaDon.tongTien)}">650,000 đ</td>
+                 </tr>
+                 </tbody>
+             </table>
+ 
++            <p class="text-muted small">Số tiền được tính lại khi xác nhận, gồm dịch vụ phát sinh sau khi mở trang này.</p>
+             <!-- Form gửi dữ liệu xác nhận thanh toán -->
+             <form method="post" th:action="@{/hoadon/thanhtoan}" th:object="${hoaDon}">
++    <input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}">
+                 <input type="hidden" th:field="*{maDatPhong}">
+-                <input type="hidden" th:field="*{tienPhong}">
+-                <input type="hidden" th:field="*{tienDichVu}">
+-                <input type="hidden" th:field="*{tongTien}">
+ 
+                 <div class="d-flex justify-content-between mt-4">
+                     <a th:href="@{/khachhang/phong}" class="btn btn-outline-secondary">Hủy bỏ</a>
+--- a/src/main/resources/templates/HoaDonDanhSach.html
++++ b/src/main/resources/templates/HoaDonDanhSach.html
+@@ -1,9 +1,9 @@
+ <!DOCTYPE html>
+ <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+ <head>
+-    <meta charset="UTF-8">
++    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Quản Lý Hóa Đơn - Kênh Lễ Tân</title>
+-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
++    <link th:href="@{/vendor/bootstrap.min.css}" rel="stylesheet">
+     <style>
+         body {
+             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+@@ -147,7 +147,7 @@
+         <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+         <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+         <a class="nav-link active d-flex align-items-center" th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
+-        <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-nhap}">Đăng xuất</a>
++        <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-xuat}">Đăng xuất</a>
+     </nav>
+ </aside>
+ 
+@@ -161,7 +161,7 @@
+         <div class="revenue-pill rounded-pill px-4 py-2 d-flex align-items-center gap-2" th:if="${tongDoanhThu != null}">
+             <span class="small fw-semibold text-secondary">Tổng doanh thu:</span>
+             <span class="fs-6 fw-bold"
+-                  th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
++                  th:text="${@tienViet.format(tongDoanhThu)}">0 VNĐ</span>
+         </div>
+     </div>
+ 
+@@ -219,11 +219,11 @@
+                         12/11/2026 21:00
+                     </td>
+                     <td class="text-end text-nowrap"
+-                        th:text="${#numbers.formatDecimal(hd.tienPhong, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</td>
++                        th:text="${@tienViet.format(hd.tienPhong)}">500,000 đ</td>
+                     <td class="text-end text-nowrap"
+-                        th:text="${#numbers.formatDecimal(hd.tienDichVu, 0, 'COMMA', 0, 'POINT')} + ' đ'">150,000 đ</td>
++                        th:text="${@tienViet.format(hd.tienDichVu)}">150,000 đ</td>
+                     <td class="text-end fw-bold text-nowrap" style="color: #ff758c;"
+-                        th:text="${#numbers.formatDecimal(hd.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">650,000 đ</td>
++                        th:text="${@tienViet.format(hd.tongTien)}">650,000 đ</td>
+                     <td class="text-center text-nowrap">
+                         <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                               th:classappend="${hd.trangThai == 'Đã thanh toán' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis'}"
+--- a/src/main/resources/templates/ChiTietHoaDon.html
++++ b/src/main/resources/templates/ChiTietHoaDon.html
+@@ -1,9 +1,9 @@
+ <!DOCTYPE html>
+ <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+ <head>
+-    <meta charset="UTF-8">
++    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+     <title th:text="'Biên lai ' + ${hoaDon.maHienThi}">Biên lai thanh toán</title>
+-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
++    <link th:href="@{/vendor/bootstrap.min.css}" rel="stylesheet">
+     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+     <style>
+         body {
+@@ -87,6 +87,7 @@
+ 
+ <form id="formInBienLai" th:action="@{/hoadon/chitiet/{id}/in(id=${hoaDon.maHoaDon})}" method="post"
+       class="w-100 d-flex flex-column align-items-center">
++    <input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}">
+ 
+     <div class="card receipt-sheet w-100 rounded-0 shadow p-3 p-sm-4">
+ 
+@@ -156,15 +157,15 @@
+                     <td class="text-center py-2">1</td>
+                     <td class="py-2">Tiền thuê phòng (Room <span th:text="${hoaDon.datPhong != null ? hoaDon.datPhong.soPhong : ''}">502</span>)</td>
+                     <td class="text-center py-2">1</td>
+-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
++                    <td class="text-end py-2 text-nowrap" th:text="${@tienViet.format(hoaDon.tienPhong)}">5.000.000 đ</td>
++                    <td class="text-end py-2 text-nowrap" th:text="${@tienViet.format(hoaDon.tienPhong)}">5.000.000 đ</td>
+                 </tr>
+                 <tr>
+                     <td class="text-center py-2">2</td>
+                     <td class="py-2">Dịch vụ phát sinh (Extra Services)</td>
+                     <td class="text-center py-2">1</td>
+-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
+-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
++                    <td class="text-end py-2 text-nowrap" th:text="${@tienViet.format(hoaDon.tienDichVu)}">0 đ</td>
++                    <td class="text-end py-2 text-nowrap" th:text="${@tienViet.format(hoaDon.tienDichVu)}">0 đ</td>
+                 </tr>
+                 </tbody>
+             </table>
+@@ -176,7 +177,7 @@
+                 <table class="table table-sm table-borderless text-xs receipt-table mb-1">
+                     <tr>
+                         <td class="text-secondary py-0">Tạm tính / Subtotal:</td>
+-                        <td class="text-end fw-medium py-0 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
++                        <td class="text-end fw-medium py-0 text-nowrap" th:text="${@tienViet.format(hoaDon.tongTien)}">5.000.000 đ</td>
+                     </tr>
+                     <tr>
+                         <td class="text-secondary py-1">Thuế VAT (đã gồm) / Tax:</td>
+@@ -184,7 +185,7 @@
+                     </tr>
+                     <tr class="border-top border-dark">
+                         <td class="fw-bold fs-6 pt-1 text-nowrap">Tổng cộng / Total:</td>
+-                        <td class="text-end fw-bold fs-6 pt-1 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
++                        <td class="text-end fw-bold fs-6 pt-1 text-nowrap" th:text="${@tienViet.format(hoaDon.tongTien)}">5.000.000 đ</td>
+                     </tr>
+                 </table>
+             </div>
+--- /dev/null
++++ b/src/main/java/org/example/quan_li_khach_san/service/ThanhToanService.java
+@@ -0,0 +1,63 @@
++package org.example.quan_li_khach_san.service;
++
++import org.example.quan_li_khach_san.entity.*;
++import org.example.quan_li_khach_san.repository.*;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import java.math.BigDecimal;
++import java.time.Duration;
++import java.time.LocalDateTime;
++
++/** Integration adapter for TV4: serialize final billing with TV3 orders on the same stay. */
++@Service
++@Transactional(readOnly = true)
++public class ThanhToanService {
++    private final DatPhongRepository stays;
++    private final HoaDonRepository bills;
++    private final SuDungDichVuRepository usages;
++    private final RoomRepository rooms;
++    public ThanhToanService(DatPhongRepository stays, HoaDonRepository bills,
++                           SuDungDichVuRepository usages, RoomRepository rooms) {
++        this.stays = stays; this.bills = bills; this.usages = usages; this.rooms = rooms;
++    }
++    public HoaDon xemTruoc(String soPhong) {
++        DatPhong stay = stays.findFirstBySoPhongAndTrangThaiOrderByNgayNhanPhongDesc(soPhong, "Đang lưu trú")
++                .orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy lượt đang lưu trú của phòng."));
++        return tinhTien(stay, LocalDateTime.now());
++    }
++    public long soNgayTinhPhi(DatPhong stay, LocalDateTime now) {
++        // Keep TV4's existing rule: full 24-hour periods, minimum one day.
++        return Math.max(1, Duration.between(stay.getNgayNhanPhong(), now).toDays());
++    }
++    private HoaDon tinhTien(DatPhong stay, LocalDateTime now) {
++        if (!stay.isDangLuuTru() || stay.getNgayNhanPhong() == null || stay.getNgayNhanPhong().isAfter(now))
++            throw new DichVuException("Lượt lưu trú không hợp lệ hoặc đã trả phòng.");
++        BigDecimal price = BigDecimal.valueOf(stay.getPhong().getGiaPhong());
++        if (price == null || price.signum() < 0) throw new DichVuException("Giá phòng không hợp lệ.");
++        HoaDon bill = new HoaDon(); bill.setDatPhong(stay); bill.setMaDatPhong(stay.getMaDatPhong());
++        bill.setTienPhong(price.multiply(BigDecimal.valueOf(soNgayTinhPhi(stay, now))));
++        bill.setTienDichVu(usages.tongTienTheoLuotO(stay.getMaDatPhong()));
++        bill.setTongTien(bill.getTienPhong().add(bill.getTienDichVu()));
++        bill.setTrangThai("Chưa thanh toán");
++        return bill;
++    }
++    @Transactional
++    public Long thanhToan(Long stayId) {
++        DatPhong stay = stays.findLockedById(stayId)
++                .orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy lượt lưu trú."));
++        var existing = bills.findByMaDatPhong(stayId);
++        if (existing.isPresent() && "Đã thanh toán".equals(existing.get().getTrangThai())) {
++            if (stay.isDangLuuTru()) throw new DichVuException("Dữ liệu hóa đơn và lượt ở không khớp. Cần kiểm tra trước khi thanh toán.");
++            return existing.get().getMaHoaDon();
++        }
++        LocalDateTime now = LocalDateTime.now();
++        HoaDon calculated = tinhTien(stay, now);
++        HoaDon bill = existing.orElse(calculated);
++        bill.setTienPhong(calculated.getTienPhong()); bill.setTienDichVu(calculated.getTienDichVu());
++        bill.setTongTien(calculated.getTongTien()); bill.setNgayLap(now); bill.setTrangThai("Đã thanh toán");
++        // Stay lock is always acquired first, exactly as in DichVuService.goiDichVu.
++        stay.setTrangThai("Đã trả phòng"); stay.setNgayTraPhong(now);
++        Room room = stay.getPhong(); room.setTrangThai("Còn trống"); rooms.save(room);
++        return bills.saveAndFlush(bill).getMaHoaDon();
++    }
++}
+--- a/src/main/java/org/example/quan_li_khach_san/config/DichVuWebConfig.java
++++ b/src/main/java/org/example/quan_li_khach_san/config/DichVuWebConfig.java
+@@ -34,6 +34,6 @@
+                 }
+                 return true;
+             }
+-        }).addPathPatterns("/dich-vu", "/dich-vu/**");
++        }).addPathPatterns("/dich-vu", "/dich-vu/**", "/hoadon/**");
+     }
+ }
+--- a/src/main/java/org/example/quan_li_khach_san/controller/DichVuErrorHandler.java
++++ b/src/main/java/org/example/quan_li_khach_san/controller/DichVuErrorHandler.java
+@@ -10,7 +10,7 @@
+ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+ import org.springframework.web.bind.MissingServletRequestParameterException;
+ 
+-@ControllerAdvice(assignableTypes = DichVuController.class)
++@ControllerAdvice(assignableTypes = {DichVuController.class, HoaDonController.class})
+ public class DichVuErrorHandler {
+     @ExceptionHandler(DichVuException.class)
+     @ResponseStatus(HttpStatus.CONFLICT)

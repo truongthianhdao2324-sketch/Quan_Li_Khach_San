@@ -1,0 +1,24 @@
+--- a/src/main/java/org/example/quan_li_khach_san/controller/RoomController.java
++++ b/src/main/java/org/example/quan_li_khach_san/controller/RoomController.java
+@@ -199,7 +199,9 @@
+ 
+         // Kiểm tra giá phòng
+         if (!bindingResult.hasFieldErrors("giaPhong")
+-                && (!Double.isFinite(room.getGiaPhong()) || room.getGiaPhong() <= 0)) {
++                && (room.getGiaPhong() == null || room.getGiaPhong().signum() <= 0
++                    || room.getGiaPhong().precision() - room.getGiaPhong().scale() > 13
++                    || room.getGiaPhong().stripTrailingZeros().scale() > 2)) {
+             bindingResult.rejectValue("giaPhong", "invalid",
+                     "Giá phòng phải lớn hơn 0");
+         }
+@@ -283,7 +285,9 @@
+ 
+         // Kiểm tra giá phòng
+         if (!bindingResult.hasFieldErrors("giaPhong")
+-                && (!Double.isFinite(room.getGiaPhong()) || room.getGiaPhong() <= 0)) {
++                && (room.getGiaPhong() == null || room.getGiaPhong().signum() <= 0
++                    || room.getGiaPhong().precision() - room.getGiaPhong().scale() > 13
++                    || room.getGiaPhong().stripTrailingZeros().scale() > 2)) {
+             bindingResult.rejectValue("giaPhong", "invalid",
+                     "Giá phòng phải lớn hơn 0");
+         }

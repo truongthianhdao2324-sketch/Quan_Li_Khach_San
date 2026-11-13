@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-12T23:56:04.244Z",
+  "previewUrl": "http://127.0.0.1:8088",
+  "database": "H2 disposable preview",
+  "desktop": "1440x1000",
+  "mobile": "390x844",
+  "tcpClients": 3,
+  "received": [
+    [
+      "SERVICE|1|1|MjAy|Tsaw4bubYyBzdeG7kWkgdGluaCBraGnhur90|2|2026-11-13T06:56:03.690106"
+    ],
+    [
+      "SERVICE|1|1|MjAy|Tsaw4bubYyBzdeG7kWkgdGluaCBraGnhur90|2|2026-11-13T06:56:03.690106"
+    ],
+    [
+      "SERVICE|1|1|MjAy|Tsaw4bubYyBzdeG7kWkgdGluaCBraGnhur90|2|2026-11-13T06:56:03.690106"
+    ]
+  ],
+  "checked": [
+    "login",
+    "catalog render",
+    "create service",
+    "fractional price display",
+    "search",
+    "mobile overflow",
+    "order 2 x 20000",
+    "history",
+    "DB to TCP three clients",
+    "receptionist denied admin route",
+    "friendly HTTP 400 lookup error"
+  ]
+}

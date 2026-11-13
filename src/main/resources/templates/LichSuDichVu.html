@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/dichvu :: head('Lịch sử dịch vụ')}"></head><body>
+<header th:replace="~{fragments/dichvu :: nav}"></header>
+<main class="container py-4"><h1>Lịch sử dịch vụ theo lượt ở</h1><p class="text-secondary">Mỗi lượt lưu trú có lịch sử và tổng tiền riêng, kể cả khi khách quay lại cùng phòng.</p>
+  <div th:replace="~{fragments/dichvu :: alerts}"></div>
+  <section class="card mb-4"><div class="card-body p-4"><form method="get" th:action="@{/dich-vu/lich-su}" class="row g-2 align-items-end">
+    <div class="col-md-9"><label for="stay" class="form-label">Lượt đang lưu trú</label><select id="stay" name="maDatPhong" class="form-select" required><option value="">Chọn lượt ở</option><option th:each="stay : ${luotO}" th:value="${stay.maDatPhong}" th:selected="${selectedStay != null and selectedStay.maDatPhong == stay.maDatPhong}" th:text="'Phòng ' + ${stay.phong.soPhong} + ' · ' + ${stay.khachHang.hoTen} + ' · #' + ${stay.maDatPhong}"></option></select></div><div class="col-md-3"><button class="btn btn-rose w-100">Xem lịch sử</button></div>
+  </form><form class="d-flex gap-2 mt-3" method="get" th:action="@{/dich-vu/lich-su}"><label for="oldStay" class="visually-hidden">Mã lượt ở cũ</label><input id="oldStay" class="form-control" name="maDatPhong" type="number" min="1" required placeholder="Hoặc nhập mã lượt ở cũ"><button class="btn btn-outline-secondary text-nowrap">Tra cứu</button></form></div></section>
+  <section th:if="${selectedStay != null}" class="card"><div class="card-body p-4">
+    <div class="d-flex gap-3 align-items-center justify-content-between flex-wrap mb-4"><div><h2 class="h5" th:text="'Lượt #' + ${selectedStay.maDatPhong} + ' · Phòng ' + ${selectedStay.phong.soPhong}"></h2><span th:text="${selectedStay.khachHang.hoTen} + ' · ' + ${selectedStay.trangThai}"></span></div><div class="summary"><small>Tổng tiền dịch vụ toàn lượt ở</small><div class="fs-4 fw-bold money" th:text="${@tienViet.format(total)}"></div></div></div>
+    <p class="small text-secondary d-md-none">Vuốt ngang bảng để xem đầy đủ thông tin và thao tác.</p>
+    <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Mã / Thời điểm</th><th>Dịch vụ lúc gọi</th><th class="text-end">Đơn giá</th><th>Số lượng</th><th class="text-end">Thành tiền</th><th>Thông báo</th></tr></thead><tbody>
+      <tr th:each="row : ${history}"><td><strong th:text="'#' + ${row.id}"></strong><small class="d-block text-secondary" th:text="${#temporals.format(row.ngaySuDung,'dd/MM/yyyy HH:mm')}"></small></td><td th:text="${row.tenDichVuLucGoi}"></td><td class="text-end money" th:text="${@tienViet.format(row.donGiaLucGoi)}"></td><td th:text="${row.soLuong}"></td><td class="text-end money" th:text="${@tienViet.format(row.thanhTien)}"></td>
+      <td><span th:class="${row.daGuiThongBao} ? 'badge text-bg-success' : 'badge text-bg-warning'" th:text="${row.daGuiThongBao} ? 'Đã chuyển tới client' : 'Chưa chuyển được'"></span><form th:if="${!row.daGuiThongBao and session.user.vaiTro == 'RECEPTIONIST'}" method="post" class="mt-2" th:action="@{/dich-vu/su-dung/{id}/gui-lai(id=${row.id})}"><input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}"><input type="hidden" name="maDatPhong" th:value="${selectedStay.maDatPhong}"><button class="btn btn-sm btn-outline-secondary">Gửi lại thông báo</button></form></td></tr>
+      <tr th:if="${#lists.isEmpty(history)}"><td colspan="6" class="py-4 text-center text-secondary">Lượt lưu trú này chưa gọi dịch vụ.</td></tr>
+    </tbody></table></div>
+    <nav aria-label="Phân trang lịch sử dịch vụ" class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <span class="small text-secondary" th:text="${historyPage.totalElements} + ' khoản dịch vụ · Trang ' + ${historyPage.number + 1} + '/' + ${historyPage.totalPages == 0 ? 1 : historyPage.totalPages}"></span>
+      <div class="d-flex gap-2"><a th:if="${historyPage.hasPrevious()}" class="btn btn-outline-secondary btn-sm" th:href="@{/dich-vu/lich-su(maDatPhong=${selectedStay.maDatPhong},page=${historyPage.number - 1})}">← Trước</a><a th:if="${historyPage.hasNext()}" class="btn btn-outline-secondary btn-sm" th:href="@{/dich-vu/lich-su(maDatPhong=${selectedStay.maDatPhong},page=${historyPage.number + 1})}">Sau →</a></div>
+    </nav>
+    <p class="small text-secondary mb-0">Đã chuyển tới client là kết quả gửi TCP, chưa phải xác nhận đã phục vụ. Đơn giá và tên dịch vụ giữ theo lúc gọi.</p>
+  </div></section>
+</main><footer th:replace="~{fragments/dichvu :: footer}"></footer></body></html>
