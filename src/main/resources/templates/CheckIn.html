@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Khách Sạn - Nhận Phòng (Check-in)</title>
+    <!-- Thêm Bootstrap 5 CDN để giao diện đẹp và nhanh chóng -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-primary">Lễ Tân - Nhận Phòng Cho Khách (Check-in)</h2>
+
+    <!-- Thông báo thành công nếu có -->
+    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        Check-in thành công cho khách hàng!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow p-4">
+        <form action="#" th:action="@{/checkin/save}" th:object="${datPhong}" method="post">
+
+            <!-- Chọn Khách Hàng -->
+            <div class="mb-3">
+                <label class="form-label">Chọn Khách Hàng:</label>
+                <select th:field="*{maKhachHang}" class="form-select" required>
+                    <option value="">-- Chọn khách hàng --</option>
+                    <option th:each="kh : ${listKhachHang}"
+                            th:value="${kh.maKhachHang}"
+                            th:text="${kh.hoTen}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Chọn Phòng Trống -->
+            <div class="mb-3">
+                <label for="maPhong" class="form-label">Chọn Phòng Trống:</label>
+                <select class="form-select" id="maPhong" th:field="*{maPhong}" required>
+                    <option value="">-- Chọn phòng trống --</option>
+                    <!-- Sửa `${p.soPhong}` thành `${p}` -->
+                    <option th:each="p : ${listPhongTrong}"
+                            th:value="${p}"
+                            th:text="'Phòng: ' + ${p}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Ngày Nhận Phòng -->
+            <div class="mb-3">
+                <label for="ngayNhanPhong" class="form-label">Ngày Nhận Phòng:</label>
+                <input type="date" class="form-control" id="ngayNhanPhong" th:field="*{ngayNhanPhong}" required>
+            </div>
+
+            <!-- Ngày Trả Phòng Dự Kiến -->
+            <div class="mb-3">
+                <label for="ngayTraPhong" class="form-label">Ngày Trả Phòng Dự Kiến:</label>
+                <input type="date" class="form-control" id="ngayTraPhong" th:field="*{ngayTraPhong}" required>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary px-5">Xác Nhận Check-in</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

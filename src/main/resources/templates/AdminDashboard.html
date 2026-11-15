@@ -129,7 +129,11 @@
     <div class="stats-grid">
         <div class="stat-card">
             <h3>Tổng doanh thu tháng này</h3>
-            <p style="color: #ff758c;">48,500,000 đ</p>
+            <p style="color: #ff758c;" th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</p>
+        </div>
+        <div class="stat-card">
+            <h3>Tổng lượng khách thực tế</h3>
+            <p th:text="${tongLuongKhach} + ' Khách'">0 Khách</p>
         </div>
         <div class="stat-card">
             <h3>Tổng số nhân viên</h3>
