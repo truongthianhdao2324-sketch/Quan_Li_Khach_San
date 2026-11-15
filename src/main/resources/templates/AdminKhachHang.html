@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tra Cứu & Giám Sát Khách Hàng - Kênh Quản Trị</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fff9fa; color: #5c5055; }
+        .sidebar { width: 300px; background-color: #fde2e4; color: #6b4c58; padding: 30px 20px; box-shadow: 4px 0 15px rgba(253, 226, 228, 0.4); }
+        .sidebar h2 { font-size: 19px; margin-top: 15px; margin-bottom: 40px; color: #593945; }
+        .sidebar .nav-link { color: #6b4c58; padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; font-weight: 600; gap: 12px; transition: all 0.3s ease; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #ff758c; color: #ffffff; transform: translateX(4px); box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3); }
+        .main-content { padding: 40px; }
+        .page-title { font-size: 26px; color: #593945; }
+        .stat-box { background: #ffffff; padding: 20px 24px; border-radius: 16px; border: 1px solid #fae1dd; box-shadow: 0 4px 18px rgba(250, 225, 221, 0.5); }
+        .stat-box h6 { color: #bfa5ad; font-size: 12px; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+        .stat-box .val { font-size: 26px; font-weight: 800; color: #593945; }
+        .content-card { background-color: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 6px 25px rgba(250, 225, 221, 0.6); border: 1px solid #fae1dd !important; margin-top: 24px; }
+        .btn-pink { background-color: #ff758c; color: #ffffff; border: none; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3); transition: all 0.3s; }
+        .btn-pink:hover { background-color: #ff5c77; color: #ffffff; transform: translateY(-1px); }
+        .btn-outline-pink { background-color: #fff0f3; color: #ff5c77; border: 1px solid #ffd6dd; border-radius: 10px; font-weight: 600; }
+        .btn-outline-pink:hover { background-color: #ff758c; color: #ffffff; border-color: #ff758c; }
+        .table-wrap { border-radius: 14px; border: 1px solid #fae1dd; }
+        .table-hotel thead th { background-color: #fff0f3; color: #6b4c58; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; padding: 16px 14px; border-bottom: 1px solid #fce4ec; }
+        .table-hotel tbody td { padding: 15px 14px; border-bottom: 1px solid #fce4ec; font-size: 14px; color: #5c5055; }
+        .table-hotel tbody tr:last-child td { border-bottom: none; }
+        .table-hotel tbody tr:hover { background-color: #fffafb; }
+        .form-control:focus, .form-select:focus { border-color: #ff758c; box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2); }
+        .log-box { background-color: #2b2124; color: #ffb3c6; font-family: Consolas, monospace; font-size: 0.85rem; border-radius: 12px; padding: 14px 18px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body class="d-flex vh-100 overflow-hidden m-0 p-0">
+
+<aside class="sidebar d-flex flex-column flex-shrink-0">
+    <h2 class="fw-bold text-center">👑 QUẢN TRỊ VIÊN</h2>
+    <nav class="nav flex-column flex-grow-1">
+        <a class="nav-link d-flex align-items-center" th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+        <a class="nav-link active d-flex align-items-center" th:href="@{/admin/khachhang/danhsach}">🧑‍🤝‍🧑 Quản lý Khách hàng</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/admin/hoadon}">🧾 Quản lý Hóa Đơn</a>
+        <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-nhap}">Đăng xuất</a>
+    </nav>
+</aside>
+
+<main class="main-content flex-grow-1 overflow-auto">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="fw-bold page-title m-0">Tra Cứu & Giám Sát Hồ Sơ Khách Hàng</h1>
+            <small class="text-muted">Chế độ Quản trị viên: Tìm kiếm, lọc trạng thái, kiểm tra tài khoản & lý do hủy hồ sơ</small>
+        </div>
+        <button type="button" class="btn btn-outline-pink px-3 py-2" onclick="kiemTraDongBoLuong()">
+            <i class="fa-solid fa-rotate me-1"></i>Chạy quét & Ghi log ngay
+        </button>
+    </div>
+
+    <!-- 3 THẺ THỐNG KÊ -->
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="stat-box">
+                <h6>Tổng hồ sơ khách hàng</h6>
+                <div class="val" style="color: #ff758c;" th:text="${tongKhach} + ' Khách'">0 Khách</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <h6>Hồ sơ đang hoạt động</h6>
+                <div class="val text-success" th:text="${dangHoatDong} + ' Khách'">0 Khách</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <h6>Hồ sơ đã hủy</h6>
+                <div class="val text-danger" th:text="${daHuy} + ' Khách'">0 Khách</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="thread-alert-box" class="alert alert-light border border-danger-subtle d-none mt-3 mb-0 rounded-3"></div>
+
+    <!-- BẢNG TRA CỨU KHÁCH HÀNG -->
+    <div class="card content-card border-0">
+        <form method="get" th:action="@{/admin/khachhang/danhsach}" class="row g-2 align-items-center mb-4">
+            <div class="col-md-5">
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control py-2 rounded-3"
+                       placeholder="🔍 Tìm theo họ tên, số điện thoại hoặc số CCCD/CMND...">
+            </div>
+            <div class="col-md-3">
+                <select name="trangThai" class="form-select py-2 rounded-3">
+                    <option value="ALL" th:selected="${trangThai == 'ALL'}">-- Tất cả trạng thái --</option>
+                    <option value="Hoạt động" th:selected="${trangThai == 'Hoạt động'}">Hoạt động</option>
+                    <option value="Đã hủy" th:selected="${trangThai == 'Đã hủy'}">Đã hủy</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-pink py-2">Tìm & Lọc</button>
+            </div>
+            <div class="col-md-2 d-grid">
+                <a th:href="@{/admin/khachhang/danhsach}" class="btn btn-outline-secondary py-2 rounded-3">Làm mới</a>
+            </div>
+        </form>
+
+        <div class="table-responsive table-wrap">
+            <table class="table table-hotel align-middle mb-0">
+                <thead>
+                <tr>
+                    <th class="text-nowrap">Mã KH</th>
+                    <th class="text-nowrap">Họ và Tên</th>
+                    <th class="text-nowrap">Giấy tờ</th>
+                    <th class="text-nowrap">Số điện thoại</th>
+                    <th class="text-center text-nowrap">Trạng thái</th>
+                    <th class="text-center text-nowrap">Tài khoản hủy</th>
+                    <th>Lý do hủy</th>
+                    <th class="text-center text-nowrap">Chi tiết</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="kh : ${listKH}">
+                    <td class="fw-bold text-nowrap" style="color: #ff758c;"
+                        th:text="'KH' + ${#numbers.formatInteger(kh.maKhachHang, 4)}"></td>
+                    <td class="fw-semibold text-nowrap" style="color: #593945;" th:text="${kh.hoTen}"></td>
+                    <td class="text-nowrap">
+                        <span class="badge bg-light text-dark border me-1" th:text="${kh.loaiGiayTo}"></span>
+                        <span th:text="${kh.soGiayTo}"></span>
+                    </td>
+                    <td class="text-nowrap" th:text="${kh.soDienThoai}"></td>
+                    <td class="text-center text-nowrap">
+                        <span th:if="${kh.trangThai != 'Đã hủy'}"
+                              class="badge rounded-pill px-3 py-2 fw-semibold bg-success-subtle text-success">Hoạt động</span>
+                        <span th:if="${kh.trangThai == 'Đã hủy'}"
+                              class="badge rounded-pill px-3 py-2 fw-semibold bg-danger-subtle text-danger">Đã hủy</span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <span th:if="${kh.trangThai == 'Đã hủy'}" class="badge bg-dark-subtle text-dark border px-2 py-1">
+                            <i class="fa-solid fa-user-shield me-1"></i><span th:text="${kh.nguoiHuy != null ? kh.nguoiHuy : 'letan'}"></span>
+                        </span>
+                        <span th:if="${kh.trangThai != 'Đã hủy'}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${kh.trangThai == 'Đã hủy'}" class="text-danger fw-medium" th:text="${kh.lyDoHuy}"></span>
+                        <span th:if="${kh.trangThai != 'Đã hủy'}" class="text-muted fst-italic">—</span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <button type="button" class="btn btn-sm btn-outline-pink px-3"
+                                th:onclick="'xemChiTiet(' + ${kh.maKhachHang} + ')'">
+                            <i class="fa-solid fa-eye me-1"></i>Xem chi tiết
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(listKH)}">
+                    <td colspan="8" class="text-center fst-italic py-5" style="color: #bfa5ad;">
+                        Không tìm thấy dữ liệu khách hàng nào!
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- GIÁM SÁT NHẬT KÝ LUỒNG @SCHEDULED -->
+    <div class="card content-card border-0">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0" style="color: #593945;">
+                <i class="fa-solid fa-microchip me-2" style="color: #ff758c;"></i>Nhật ký Tác vụ Nền Định kỳ (@Scheduled - File: logs/khach_hang_scheduled.log)
+            </h6>
+            <span class="badge bg-light text-dark border">Tự động quét mỗi 60 giây</span>
+        </div>
+        <div class="log-box" id="admin-log-viewer">
+            <div th:each="line : ${logList}" th:text="${line}"></div>
+            <div th:if="${#lists.isEmpty(logList)}" class="text-white-50">
+                Đang chờ luồng scheduling-1 ghi dữ liệu... (Hoặc bấm nút "Chạy quét & Ghi log ngay" ở góc trên)
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL XEM CHI TIẾT KHÁCH HÀNG & LÝ DO HỦY -->
+<div class="modal fade" id="modalChiTietKH" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header text-white rounded-top-4" style="background: linear-gradient(135deg, #ff758c, #ff8fa3);">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-address-card me-2"></i>Hồ Sơ Chi Tiết Khách Hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4"><small class="text-muted d-block">Mã khách hàng:</small><span class="fw-bold" id="dt-maKH"></span></div>
+                    <div class="col-md-4"><small class="text-muted d-block">Họ và tên:</small><span class="fw-bold fs-5 text-dark" id="dt-hoTen"></span></div>
+                    <div class="col-md-4"><small class="text-muted d-block">Trạng thái:</small><span id="dt-trangThai"></span></div>
+                    <div class="col-md-4"><small class="text-muted d-block">Giới tính:</small><span class="fw-semibold" id="dt-gioiTinh"></span></div>
+                    <div class="col-md-4"><small class="text-muted d-block">Loại giấy tờ:</small><span class="badge bg-secondary" id="dt-loaiGiayTo"></span></div>
+                    <div class="col-md-4"><small class="text-muted d-block">Số giấy tờ:</small><span class="fw-bold" style="color: #ff758c;" id="dt-soGiayTo"></span></div>
+                    <div class="col-md-6"><small class="text-muted d-block">Số điện thoại:</small><span class="fw-semibold" id="dt-sdt"></span></div>
+                    <div class="col-md-6"><small class="text-muted d-block">Email:</small><span class="fw-semibold" id="dt-email"></span></div>
+                </div>
+
+                <div id="dt-lyDoHuyBox" class="alert alert-danger mt-4 mb-0 d-none rounded-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong><i class="fa-solid fa-triangle-exclamation me-1"></i>Thông tin hủy hồ sơ:</strong>
+                        <span class="badge bg-dark">Tài khoản thực hiện: <span id="dt-nguoiHuy"></span></span>
+                    </div>
+                    <div id="dt-lyDoHuyText"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function xemChiTiet(maKH) {
+        fetch('/admin/khachhang/chitiet/' + maKH)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('dt-maKH').innerText = data.maKHFormat;
+                document.getElementById('dt-hoTen').innerText = data.hoTen;
+                document.getElementById('dt-gioiTinh').innerText = data.gioiTinh;
+                document.getElementById('dt-loaiGiayTo').innerText = data.loaiGiayTo;
+                document.getElementById('dt-soGiayTo').innerText = data.soGiayTo;
+                document.getElementById('dt-sdt').innerText = data.soDienThoai;
+                document.getElementById('dt-email').innerText = data.email;
+
+                const ttSpan = document.getElementById('dt-trangThai');
+                const lyDoBox = document.getElementById('dt-lyDoHuyBox');
+                if (data.trangThai === 'Đã hủy') {
+                    ttSpan.innerHTML = '<span class="badge bg-danger">Đã hủy</span>';
+                    lyDoBox.classList.remove('d-none');
+                    document.getElementById('dt-nguoiHuy').innerText = data.nguoiHuy || 'letan';
+                    document.getElementById('dt-lyDoHuyText').innerText = data.lyDoHuy || 'Không có ghi chú';
+                } else {
+                    ttSpan.innerHTML = '<span class="badge bg-success">Hoạt động</span>';
+                    lyDoBox.classList.add('d-none');
+                }
+                new bootstrap.Modal(document.getElementById('modalChiTietKH')).show();
+            });
+    }
+
+    function kiemTraDongBoLuong() {
+        fetch('/admin/khachhang/api/dongbo-luong')
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('thread-alert-box');
+                box.classList.remove('d-none');
+                box.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong style="color:#ff758c;">⚡ ${data.message}</strong><br>
+                            <code>${data.logDetail}</code>
+                        </div>
+                        <button type="button" class="btn-close" onclick="this.parentElement.parentElement.classList.add('d-none')"></button>
+                    </div>
+                `;
+                const logViewer = document.getElementById('admin-log-viewer');
+                if (logViewer && data.logs) {
+                    logViewer.innerHTML = data.logs.map(line => `<div>${line}</div>`).join('');
+                }
+            });
+    }
+</script>
+</body>
+</html>
