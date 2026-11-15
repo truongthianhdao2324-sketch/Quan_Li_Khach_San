@@ -36,10 +36,10 @@
                 <label for="maPhong" class="form-label">Chọn Phòng Trống:</label>
                 <select class="form-select" id="maPhong" th:field="*{maPhong}" required>
                     <option value="">-- Chọn phòng trống --</option>
-                    <!-- Giả sử thuộc tính trong class Room là soPhong hoặc maPhong -->
+                    <!-- Sửa `${p.soPhong}` thành `${p}` -->
                     <option th:each="p : ${listPhongTrong}"
-                            th:value="${p.soPhong}"
-                            th:text="'Phòng: ' + ${p.soPhong}">
+                            th:value="${p}"
+                            th:text="'Phòng: ' + ${p}">
                     </option>
                 </select>
             </div>
@@ -47,13 +47,13 @@
             <!-- Ngày Nhận Phòng -->
             <div class="mb-3">
                 <label for="ngayNhanPhong" class="form-label">Ngày Nhận Phòng:</label>
-                <input type="date" class="form-control" id="ngayNhanPhong" th:field="*&#123;ngayNhanPhong&#125;" required>
+                <input type="date" class="form-control" id="ngayNhanPhong" th:field="*{ngayNhanPhong}" required>
             </div>
 
             <!-- Ngày Trả Phòng Dự Kiến -->
             <div class="mb-3">
                 <label for="ngayTraPhong" class="form-label">Ngày Trả Phòng Dự Kiến:</label>
-                <input type="date" class="form-control" id="ngayTraPhong" th:field="*&#123;ngayTraPhong&#125;" required>
+                <input type="date" class="form-control" id="ngayTraPhong" th:field="*{ngayTraPhong}" required>
             </div>
 
             <div class="text-center">

@@ -29,10 +29,9 @@ public class CheckInController {
     public String hienThiTrangCheckIn(Model model) {
         model.addAttribute("listPhongTrong", roomRepository.findSoPhongByTrangThaiTrong());
         model.addAttribute("listKhachHang", khachHangRepository.findAll());
-        model.addAttribute("datPhong", new DatPhong());
-        return "CheckIn"; // Trỏ đến file CheckIn.html trong thư mục templates
+        model.addAttribute("datPhong", new DatPhong()); // <--- Khởi tạo mới hoàn toàn trống (các thuộc tính Integer bên trong sẽ là null)
+        return "CheckIn";
     }
-
     // 2. Xử lý lưu thông tin nhận phòng khi lễ tân bấm nút xác nhận
     @PostMapping("/checkin/save")
     public String thucHienCheckIn(@ModelAttribute("datPhong") DatPhong datPhong) {
