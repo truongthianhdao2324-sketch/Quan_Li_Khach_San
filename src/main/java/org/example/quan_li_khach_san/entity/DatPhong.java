@@ -8,9 +8,13 @@ import java.time.LocalDate;
 public class DatPhong {
     @Id // <--- THÊM DÒNG NÀY VÀO
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private int maDatPhong;
-        private int maKhachHang;
-        private int maPhong;
+    private Integer maDatPhong; // Đổi từ int sang Integer
+
+    @Column(name = "ma_khach_hang")
+    private Integer maKhachHang; // Đổi từ int sang Integer
+
+    @Column(name = "ma_phong")
+    private Integer maPhong;
         private LocalDate ngayNhanPhong;
         private LocalDate ngayTraPhong;
         private String trangThai; // Ví dụ: "Dang su dung", "Da tra"
@@ -30,13 +34,13 @@ public class DatPhong {
         }
 
         // Getter và Setter
-        public int getMaDatPhong() { return maDatPhong; }
+        public Integer getMaDatPhong() { return maDatPhong; }
         public void setMaDatPhong(int maDatPhong) { this.maDatPhong = maDatPhong; }
 
-        public int getMaKhachHang() { return maKhachHang; }
+        public Integer getMaKhachHang() { return maKhachHang; }
         public void setMaKhachHang(int maKhachHang) { this.maKhachHang = maKhachHang; }
 
-        public int getMaPhong() { return maPhong; }
+        public Integer getMaPhong() { return maPhong; }
         public void setMaPhong(int maPhong) { this.maPhong = maPhong; }
 
         public LocalDate getNgayNhanPhong() { return ngayNhanPhong; }

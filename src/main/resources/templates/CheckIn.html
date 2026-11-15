@@ -19,14 +19,17 @@
     <div class="card shadow p-4">
         <form action="#" th:action="@{/checkin/save}" th:object="${datPhong}" method="post">
 
-            <!-- Ví dụ chọn Khách Hàng -->
-            <select th:field="*{maKhachHang}" class="form-control">
-                <option value="">-- Chọn khách hàng --</option>
-                <option th:each="kh : ${listKhachHang}"
-                        th:value="${kh.maKhachHang}"
-                        th:text="${kh.hoTen}">
-                </option>
-            </select>
+            <!-- Chọn Khách Hàng -->
+            <div class="mb-3">
+                <label class="form-label">Chọn Khách Hàng:</label>
+                <select th:field="*{maKhachHang}" class="form-select" required>
+                    <option value="">-- Chọn khách hàng --</option>
+                    <option th:each="kh : ${listKhachHang}"
+                            th:value="${kh.maKhachHang}"
+                            th:text="${kh.hoTen}">
+                    </option>
+                </select>
+            </div>
 
             <!-- Chọn Phòng Trống -->
             <div class="mb-3">
