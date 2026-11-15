@@ -38,4 +38,3 @@ build/
 .vscode/
 
 *.log
-!docs/bang_chung_tcp/*.log
