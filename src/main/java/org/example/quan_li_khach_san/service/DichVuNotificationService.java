@@ -21,13 +21,14 @@ public class DichVuNotificationService {
     private static final Logger log = LoggerFactory.getLogger(DichVuNotificationService.class);
     private final SuDungDichVuRepository usages;
     private final TransactionTemplate tx;
+    private final DichVuRequestCache requests;
     private final String host, token;
     private final int port;
-    public DichVuNotificationService(SuDungDichVuRepository usages, PlatformTransactionManager manager,
+    public DichVuNotificationService(SuDungDichVuRepository usages, PlatformTransactionManager manager, DichVuRequestCache requests,
             @Value("${qlks.socket.host:127.0.0.1}") String host,
             @Value("${qlks.socket.port:5000}") int port,
             @Value("${qlks.socket.token:demo-noi-bo}") String token) {
-        this.usages = usages; this.host = host; this.port = port; this.token = token;
+        this.usages = usages; this.requests = requests; this.host = host; this.port = port; this.token = token;
         tx = new TransactionTemplate(manager);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -39,12 +40,14 @@ public class DichVuNotificationService {
     public boolean guiLai(Long id, Long expectedStayId) {
         Notification notification = tx.execute(status -> {
             SuDungDichVu usage = usages.findById(id).orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy khoản dịch vụ."));
+            if (usage.getDatPhong() == null)
+                throw new DichVuException("Khoản dịch vụ cũ chưa được gắn với lượt ở. Cần đối chiếu dữ liệu trước khi gửi thông báo.");
             if (expectedStayId != null && !usage.getDatPhong().getMaDatPhong().equals(expectedStayId))
                 throw new DichVuException("Khoản dịch vụ không thuộc lượt lưu trú đang xem.");
             String payload = "EVENT|" + ServiceProtocol.encode(token) + "|" + usage.getId() + "|" + usage.getDatPhong().getMaDatPhong()
-                    + "|" + ServiceProtocol.encode(usage.getSoPhong()) + "|" + ServiceProtocol.encode(usage.getTenDichVuLucGoi())
+                    + "|" + ServiceProtocol.encode(usage.getSoPhong()) + "|" + ServiceProtocol.encode(usage.getTenDichVu())
                     + "|" + usage.getSoLuong() + "|" + usage.getNgaySuDung() + "|WEB";
-            return new Notification(payload, usage.isDaGuiThongBao());
+            return new Notification(payload, requests.wasDelivered(id));
         });
         if (notification.alreadySent()) return true;
         try (Socket socket = new Socket()) {
@@ -57,10 +60,12 @@ public class DichVuNotificationService {
                 String[] parts = reply.split("\\|", -1);
                 // ACK with zero receivers is NOT a delivered notification. Keep retry available.
                 if (parts.length != 3 || !"ACK".equals(parts[0]) || !id.toString().equals(parts[1]) || Integer.parseInt(parts[2]) < 1) return false;
-                tx.executeWithoutResult(status -> usages.markNotified(id));
+                requests.markDelivered(id);
                 return true;
             }
         } catch (IOException | IllegalArgumentException ex) { log.warn("TCP #{} chưa gửi: {}", id, ex.getMessage()); return false; }
     }
+    public java.util.Set<Long> daGuiIds() { return requests.deliveredIds(); }
+
     private record Notification(String payload, boolean alreadySent) { }
 }

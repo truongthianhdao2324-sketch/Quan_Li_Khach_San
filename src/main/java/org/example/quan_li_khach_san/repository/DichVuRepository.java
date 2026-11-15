@@ -9,7 +9,7 @@ import java.util.*;
 
 public interface DichVuRepository extends JpaRepository<DichVu, Long> {
     Page<DichVu> findByTenDichVuContainingIgnoreCase(String keyword, Pageable pageable);
-    List<DichVu> findByDangKinhDoanhTrueOrderByTenDichVuAsc();
+    List<DichVu> findAllByOrderByTenDichVuAsc();
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select d from DichVu d where d.maDichVu = :id")
     Optional<DichVu> findLockedById(@Param("id") Long id);

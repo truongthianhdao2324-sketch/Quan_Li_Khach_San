@@ -23,8 +23,8 @@ public class PreviewApplication {
                 TaiKhoan user = new TaiKhoan(); user.setTenDangNhap(name); user.setMatKhau("123456"); user.setVaiTro(name.equals("admin") ? "ADMIN" : "RECEPTIONIST"); em.persist(user);
             }
             Room room = new Room(); room.setSoPhong("202"); room.setTrangThai("Đã có khách"); room.setLoaiPhong("Cao cấp"); room.setGiaPhong(1000000); em.persist(room);
-            KhachHang guest = new KhachHang(); guest.setHoTen("Nguyễn Văn An"); guest.setSoGiayTo("DEMO-202"); guest.setLoaiGiayTo("CCCD"); guest.setGioiTinh("Nam"); guest.setSoDienThoai("0900000000"); em.persist(guest);
-            DatPhong stay = new DatPhong(); stay.setKhachHang(guest); stay.setPhong(room); stay.setNgayNhanPhong(LocalDateTime.now().minusDays(1)); stay.setTrangThai("Đang lưu trú"); em.persist(stay);
+            KhachHang guest = new KhachHang(); guest.setHoTen("Nguyễn Văn An"); guest.setSoGiayTo("079200000202"); guest.setLoaiGiayTo("CCCD"); guest.setGioiTinh("Nam"); guest.setSoDienThoai("0900000000"); em.persist(guest);
+            DatPhong stay = new DatPhong(); stay.setKhachHang(guest); stay.setRoom(room); stay.setNgayNhanPhong(LocalDateTime.now().minusDays(1)); stay.setTrangThai("Đang lưu trú"); em.persist(stay);
         });
         DichVuService service = context.getBean(DichVuService.class);
         String[] names = {"Nước suối tinh khiết", "Nước ngọt có ga", "Cà phê rang xay", "Giặt ủi quần áo", "Ăn sáng tại phòng", "Trà thảo mộc", "Set trái cây", "Đưa đón sân bay", "Thuê xe máy", "Massage thư giãn", "Giữ hành lý", "Bãi đỗ xe", "Nước ép cam"};

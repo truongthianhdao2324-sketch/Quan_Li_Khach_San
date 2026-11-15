@@ -5,15 +5,25 @@
   <link rel="stylesheet" th:href="@{/vendor/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/css/dichvu.css}">
 </head><body>
-<header th:fragment="nav" class="hotel-nav">
-  <a class="hotel-brand" th:href="${session.user.vaiTro == 'ADMIN'} ? @{/admin/dashboard} : @{/letan/dashboard}">🌸 Khách sạn <small>Quản lý dịch vụ</small></a>
-  <nav aria-label="Điều hướng chính" class="d-flex flex-wrap gap-2">
-    <a th:href="@{/dich-vu}" class="btn btn-light btn-sm">Danh mục dịch vụ</a>
-    <a th:if="${session.user.vaiTro == 'RECEPTIONIST'}" th:href="@{/dich-vu/goi}" class="btn btn-rose btn-sm">Gọi dịch vụ</a>
-    <a th:href="@{/dich-vu/lich-su}" class="btn btn-light btn-sm">Lịch sử sử dụng</a>
-    <a th:href="@{/dang-xuat}" class="btn btn-outline-secondary btn-sm">Đăng xuất</a>
+<aside th:fragment="nav" class="sidebar" aria-label="Menu chính"
+       th:with="role=${session.user.vaiTro == null ? '' : #strings.toUpperCase(#strings.trim(session.user.vaiTro))},
+                dichVuAdmin=${role == 'ADMIN'}, dichVuLeTan=${role == 'RECEPTIONIST' or role == 'LETAN'}">
+  <h2 th:text="${dichVuAdmin} ? '🌸 QUẢN TRỊ VIÊN' : '🌸 KÊNH LỄ TÂN'">🌸 KÊNH LỄ TÂN</h2>
+  <nav class="main-menu" aria-label="Các chức năng">
+    <a th:href="${dichVuAdmin} ? @{/admin/dashboard} : @{/letan/dashboard}">🏠 Trang chủ</a>
+    <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+    <a th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+    <a th:if="${dichVuAdmin}" th:href="@{/admin/nhanvien}">👤 Quản lý Nhân viên</a>
+    <a class="active" aria-current="page" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+    <div class="service-menu" aria-label="Chức năng dịch vụ">
+      <a th:href="@{/dich-vu}" th:classappend="${dichVuRoute != '/dich-vu/goi' and dichVuRoute != '/dich-vu/lich-su'} ? 'selected' : ''">Danh mục dịch vụ</a>
+      <a th:if="${dichVuLeTan}" th:href="@{/dich-vu/goi}" th:classappend="${dichVuRoute == '/dich-vu/goi'} ? 'selected' : ''">Gọi dịch vụ</a>
+      <a th:href="@{/dich-vu/lich-su}" th:classappend="${dichVuRoute == '/dich-vu/lich-su'} ? 'selected' : ''">Lịch sử sử dụng</a>
+    </div>
+    <a th:href="${dichVuAdmin} ? @{/admin/hoadon} : @{/hoadon/danhsach}">📄 Quản lý Hóa đơn</a>
   </nav>
-</header>
+  <a class="logout-link" th:href="@{/dang-xuat}">Đăng xuất</a>
+</aside>
 <div th:fragment="alerts" aria-live="polite">
   <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
   <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>

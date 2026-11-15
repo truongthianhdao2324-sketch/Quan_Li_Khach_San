@@ -36,7 +36,7 @@ public class DichVuController {
     @GetMapping("/{id}/sua")
     public String sua(@PathVariable Long id, Model model) {
         DichVu item = service.getDichVu(id);
-        DichVuForm form = new DichVuForm(); form.setTenDichVu(item.getTenDichVu()); form.setGiaDichVu(item.getGiaDichVu()); form.setDangKinhDoanh(item.isDangKinhDoanh());
+        DichVuForm form = new DichVuForm(); form.setTenDichVu(item.getTenDichVu()); form.setGiaDichVu(item.getGiaDichVu());
         model.addAttribute("form", form); model.addAttribute("id", id); return "ThemDichVu";
     }
     @PostMapping({"/luu", "/{id}/luu"})
@@ -81,6 +81,7 @@ public class DichVuController {
     @GetMapping("/lich-su")
     public String lichSu(@RequestParam(required = false) Long maDatPhong, @RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("luotO", service.luotDangO());
+        model.addAttribute("daGuiIds", notifications.daGuiIds());
         if (maDatPhong != null) {
             model.addAttribute("selectedStay", service.getLuotO(maDatPhong));
             var historyPage = service.lichSuPhanTrang(maDatPhong, page);

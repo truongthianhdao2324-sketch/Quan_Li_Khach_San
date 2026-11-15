@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:qlks-boundary;MODE=MSSQLServer;DB_CLOSE_DELAY=-1",
+        "spring.datasource.url=jdbc:h2:mem:qlks-boundary;MODE=MySQL;DB_CLOSE_DELAY=-1",
         "spring.datasource.hikari.maximum-pool-size=1",
         "spring.datasource.hikari.connection-timeout=1000"})
 class DichVuOrderBoundaryTests {
@@ -51,8 +51,8 @@ class DichVuOrderBoundaryTests {
     @Test void oneDatabaseConnectionIsEnoughAndDuplicateSubmissionDoesNotRebroadcast() throws Exception {
         GoiDichVuForm form = new TransactionTemplate(manager).execute(status -> {
             Room room = new Room(); room.setSoPhong("B202"); room.setTrangThai("Đã có khách"); room.setLoaiPhong("Cao cấp"); room.setGiaPhong(1000000); em.persist(room);
-            KhachHang guest = new KhachHang(); guest.setHoTen("Khách kiểm thử"); guest.setSoGiayTo("BOUNDARY-1"); em.persist(guest);
-            DatPhong stay = new DatPhong(); stay.setKhachHang(guest); stay.setPhong(room); stay.setNgayNhanPhong(LocalDateTime.now()); stay.setTrangThai("Đang lưu trú"); em.persist(stay);
+            KhachHang guest = new KhachHang(); guest.setHoTen("Khách kiểm thử"); guest.setSoGiayTo("BOUNDARY-1"); guest.setLoaiGiayTo("CCCD"); guest.setGioiTinh("Nam"); guest.setSoDienThoai("0900000000"); em.persist(guest);
+            DatPhong stay = new DatPhong(); stay.setKhachHang(guest); stay.setRoom(room); stay.setNgayNhanPhong(LocalDateTime.now()); stay.setTrangThai("Đang lưu trú"); em.persist(stay);
             DichVu item = new DichVu(); item.setTenDichVu("Nước suối"); item.setGiaDichVu(new BigDecimal("20000")); em.persist(item); em.flush();
             GoiDichVuForm result = new GoiDichVuForm(); result.setMaDatPhong(stay.getMaDatPhong()); result.setMaDichVu(item.getMaDichVu()); result.setSoLuong(2); result.setMaYeuCau(UUID.randomUUID().toString()); return result;
         });

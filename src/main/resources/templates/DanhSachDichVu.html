@@ -3,8 +3,8 @@
 <header th:replace="~{fragments/dichvu :: nav}"></header>
 <main class="container py-4">
   <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
-    <div><h1>Danh mục dịch vụ</h1><p class="text-secondary mb-0">Đơn giá hiện tại và tình trạng cung cấp của khách sạn.</p></div>
-    <a th:if="${session.user.vaiTro == 'ADMIN'}" th:href="@{/dich-vu/them}" class="btn btn-rose">+ Thêm dịch vụ</a>
+    <div><h1>Danh mục dịch vụ</h1><p class="text-secondary mb-0">Danh sách dịch vụ và đơn giá của khách sạn.</p></div>
+    <a th:if="${dichVuAdmin}" th:href="@{/dich-vu/them}" class="btn btn-rose">+ Thêm dịch vụ</a>
   </div>
   <div th:replace="~{fragments/dichvu :: alerts}"></div>
   <section class="card"><div class="card-body p-4">
@@ -16,12 +16,11 @@
     </form>
     <p class="small text-secondary d-md-none">Vuốt ngang bảng để xem đầy đủ thông tin và thao tác.</p>
     <div class="table-responsive"><table class="table align-middle">
-      <thead><tr><th>Mã</th><th>Dịch vụ</th><th class="text-end">Đơn giá</th><th>Trạng thái</th><th th:if="${session.user.vaiTro == 'ADMIN'}">Thao tác</th></tr></thead>
+      <thead><tr><th>Mã</th><th>Dịch vụ</th><th class="text-end">Đơn giá</th><th th:if="${dichVuAdmin}">Thao tác</th></tr></thead>
       <tbody><tr th:each="item : ${page.content}">
         <td th:text="'DV' + ${item.maDichVu}"></td><td class="fw-semibold" th:text="${item.tenDichVu}"></td>
         <td class="text-end money" th:text="${@tienViet.format(item.giaDichVu)}"></td>
-        <td><span th:class="${item.dangKinhDoanh} ? 'badge text-bg-success' : 'badge text-bg-secondary'" th:text="${item.dangKinhDoanh} ? 'Đang cung cấp' : 'Ngừng cung cấp'"></span></td>
-        <td th:if="${session.user.vaiTro == 'ADMIN'}"><div class="d-flex gap-2"><a class="btn btn-sm btn-outline-secondary" th:href="@{/dich-vu/{id}/sua(id=${item.maDichVu})}">Sửa</a>
+        <td th:if="${dichVuAdmin}"><div class="d-flex gap-2"><a class="btn btn-sm btn-outline-secondary" th:href="@{/dich-vu/{id}/sua(id=${item.maDichVu})}">Sửa</a>
           <form method="post" th:action="@{/dich-vu/{id}/xoa(id=${item.maDichVu})}" onsubmit="return confirm('Xóa dịch vụ này? Dịch vụ đã có lịch sử sẽ được bảo vệ và không thể xóa.');"><input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}"><button class="btn btn-sm btn-outline-danger">Xóa</button></form></div></td>
       </tr><tr th:if="${page.empty}"><td colspan="5" class="text-center text-secondary py-5">Không có dịch vụ phù hợp.</td></tr></tbody>
     </table></div>

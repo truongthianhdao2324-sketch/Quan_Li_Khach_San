@@ -13,13 +13,9 @@ public class DichVu {
     private String tenDichVu;
     @Column(name = "gia_dich_vu", nullable = false, precision = 15, scale = 2)
     private BigDecimal giaDichVu;
-    @Column(name = "dang_kinh_doanh", nullable = false)
-    private boolean dangKinhDoanh = true;
     public Long getMaDichVu() { return maDichVu; }
     public String getTenDichVu() { return tenDichVu; }
     public void setTenDichVu(String value) { tenDichVu = value; }
     public BigDecimal getGiaDichVu() { return giaDichVu; }
     public void setGiaDichVu(BigDecimal value) { giaDichVu = value; }
-    public boolean isDangKinhDoanh() { return dangKinhDoanh; }
-    public void setDangKinhDoanh(boolean value) { dangKinhDoanh = value; }
 }

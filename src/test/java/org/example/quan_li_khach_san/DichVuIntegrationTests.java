@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 class DichVuIntegrationTests {
     @Autowired DichVuService service;
+    @Autowired DichVuRequestCache requests;
     @Autowired DichVuNotificationService notifications;
     @Autowired DichVuRepository services;
     @Autowired SuDungDichVuRepository usages;
@@ -38,19 +39,19 @@ class DichVuIntegrationTests {
         usages.deleteAll(); stays.deleteAll(); guests.deleteAll(); rooms.deleteAll(); services.deleteAll();
         Room room = new Room(); room.setSoPhong("202"); room.setTrangThai("Đã có khách"); room.setLoaiPhong("Cao cấp"); room.setGiaPhong(1000000); rooms.save(room);
         KhachHang guest = new KhachHang(); guest.setSoGiayTo("TEST-202"); guest.setHoTen("Khách thử dịch vụ"); guest.setLoaiGiayTo("CCCD"); guest.setGioiTinh("Nam"); guest.setSoDienThoai("0900000000"); guests.save(guest);
-        DatPhong stay = new DatPhong(); stay.setKhachHang(guest); stay.setPhong(room); stay.setNgayNhanPhong(LocalDateTime.now().minusDays(1)); stay.setTrangThai("Đang lưu trú"); stayId = stays.save(stay).getMaDatPhong();
+        DatPhong stay = new DatPhong(); stay.setKhachHang(guest); stay.setRoom(room); stay.setNgayNhanPhong(LocalDateTime.now().minusDays(1)); stay.setTrangThai("Đang lưu trú"); stayId = stays.save(stay).getMaDatPhong();
         DichVuForm item = new DichVuForm(); item.setTenDichVu("Nước suối"); item.setGiaDichVu(new BigDecimal("20000")); service.luuDanhMuc(null, item);
         serviceId = services.findAll().get(0).getMaDichVu();
     }
     GoiDichVuForm order(String key, int quantity) {
         GoiDichVuForm form = new GoiDichVuForm(); form.setMaDatPhong(stayId); form.setMaDichVu(serviceId); form.setSoLuong(quantity); form.setMaYeuCau(key); return form;
     }
-    @Test void snapshotsSurviveRepricingAndUsedServicesCannotBeDeleted() {
+    @Test void storedChargesSurviveRepricingAndUsedServicesCannotBeDeleted() {
         Long id = service.goiDichVu(order(UUID.randomUUID().toString(), 2), "letan");
         DichVuForm changed = new DichVuForm(); changed.setTenDichVu("Nước suối đổi tên"); changed.setGiaDichVu(new BigDecimal("25000")); service.luuDanhMuc(serviceId, changed);
         SuDungDichVu stored = usages.findById(id).orElseThrow();
         assertEquals(0, stored.getThanhTien().compareTo(new BigDecimal("40000")));
-        assertEquals("Nước suối", stored.getTenDichVuLucGoi());
+        assertEquals(0, stored.getDonGiaLucGoi().compareTo(new BigDecimal("20000")));
         assertThrows(DichVuException.class, () -> service.xoaDanhMuc(serviceId));
         service.goiDichVu(order(UUID.randomUUID().toString(), 1), "letan");
         assertEquals(0, service.tongTienTheoLuotO(stayId).compareTo(new BigDecimal("65000")));
@@ -86,16 +87,14 @@ class DichVuIntegrationTests {
         service.goiDichVu(order(UUID.randomUUID().toString(), 1), "letan");
         DatPhong old = stays.findById(stayId).orElseThrow(); old.setNgayTraPhong(LocalDateTime.now()); old.setTrangThai("Đã trả phòng"); stays.save(old);
         assertThrows(DichVuException.class, () -> service.goiDichVu(order(UUID.randomUUID().toString(), 1), "letan"));
-        DatPhong next = new DatPhong(); next.setKhachHang(guests.findAll().get(0)); next.setPhong(rooms.findById("202").orElseThrow()); next.setNgayNhanPhong(LocalDateTime.now()); next.setTrangThai("Đang lưu trú");
+        DatPhong next = new DatPhong(); next.setKhachHang(guests.findAll().get(0)); next.setRoom(rooms.findById("202").orElseThrow()); next.setNgayNhanPhong(LocalDateTime.now()); next.setTrangThai("Đang lưu trú");
         Long nextId = stays.save(next).getMaDatPhong();
         assertEquals(0, service.tongTienTheoLuotO(nextId).signum()); assertEquals(1, service.lichSu(stayId).size());
     }
-    @Test void invalidQuantityAndDiscontinuedServiceAreRejectedButFreeServiceIsAllowed() {
+    @Test void invalidQuantityIsRejectedAndFreeServiceIsAllowed() {
         assertThrows(DichVuException.class, () -> service.goiDichVu(order(UUID.randomUUID().toString(), 0), "letan"));
         DichVuForm free = new DichVuForm(); free.setTenDichVu("Nước miễn phí"); free.setGiaDichVu(BigDecimal.ZERO); service.luuDanhMuc(serviceId, free);
         service.goiDichVu(order(UUID.randomUUID().toString(), 1), "letan"); assertEquals(0, service.tongTienTheoLuotO(stayId).signum());
-        free.setDangKinhDoanh(false); service.luuDanhMuc(serviceId, free);
-        assertThrows(DichVuException.class, () -> service.goiDichVu(order(UUID.randomUUID().toString(), 1), "letan"));
         assertEquals(1, usages.count());
     }
     @Test void unreferencedServiceCanBeDeletedAndCatalogReallyPaginatesAndSorts() {
@@ -175,7 +174,7 @@ class DichVuIntegrationTests {
             Future<?> serving = pool.submit(() -> { try { server.serve(); } catch (java.io.IOException ex) { throw new java.io.UncheckedIOException(ex); } });
             List<DichVuSocketTests.Client> clients = new ArrayList<>();
             try {
-                var notifier = new DichVuNotificationService(usages, transactionManager, "127.0.0.1", server.getPort(), "notify-test");
+                var notifier = new DichVuNotificationService(usages, transactionManager, requests, "127.0.0.1", server.getPort(), "notify-test");
                 assertFalse(notifier.guiLai(id)); assertFalse(service.daGui(id));
                 for (int i = 0; i < 3; i++) { var client = new DichVuSocketTests.Client(server.getPort()); clients.add(client); client.send("SUB|" + ServiceProtocol.encode("notify-test") + "|" + ServiceProtocol.encode("Client " + i)); assertEquals("READY", client.read()); }
                 assertTrue(notifier.guiLai(id)); assertTrue(service.daGui(id));
@@ -200,12 +199,65 @@ class DichVuIntegrationTests {
         mvc.perform(get("/dich-vu/goi").session(admin)).andExpect(status().isForbidden());
         mvc.perform(get("/dich-vu").session(admin)).andExpect(status().isOk()).andExpect(view().name("DanhSachDichVu"));
         mvc.perform(get("/dich-vu/them").session(admin)).andExpect(status().isOk());
+        mvc.perform(get("/dich-vu/999999999/sua").session(admin)).andExpect(status().isNotFound())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/admin/hoadon")));
         mvc.perform(get("/dich-vu/" + serviceId + "/sua").session(admin)).andExpect(status().isOk());
         mvc.perform(get("/dich-vu/goi").session(receptionist)).andExpect(status().isOk());
         service.goiDichVu(order(UUID.randomUUID().toString(), 2), "letan");
         mvc.perform(get("/dich-vu/lich-su").param("maDatPhong", stayId.toString()).session(receptionist)).andExpect(status().isOk());
         mvc.perform(post("/dich-vu/luu").session(admin).param("_csrf", "test-csrf").param("tenDichVu", "").param("giaDichVu", "-1"))
                 .andExpect(status().isOk()).andExpect(model().attributeHasFieldErrors("form", "tenDichVu", "giaDichVu"));
+    }
+    @Test void legacyReceptionistRoleAndSidebarKeepTheSameSession() throws Exception {
+        MockMvc mvc = MockMvcBuilders.webAppContextSetup(context).build();
+        MockHttpSession session = login(" letan ");
+        mvc.perform(get("/dich-vu/goi").session(session)).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Quản lý Hóa đơn")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/hoadon/danhsach")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/khachhang/phong")));
+        mvc.perform(post("/dich-vu/luu").session(session).param("_csrf", "test-csrf"))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/khachhang/phong").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/dich-vu").session(session)).andExpect(status().isOk());
+    }
+    @Test void emptyOrderingPageExplainsWhatIsMissing() throws Exception {
+        MockMvc mvc = MockMvcBuilders.webAppContextSetup(context).build();
+        stays.deleteAll(); services.deleteAll();
+        mvc.perform(get("/dich-vu/goi").session(login("RECEPTIONIST"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Chưa có khách đang lưu trú")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Chưa có dịch vụ")));
+    }
+    @Test void rollbackDoesNotLeaveADuplicateRequestInMemory() {
+        String key = UUID.randomUUID().toString();
+        new org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            service.goiDichVu(order(key, 1), "letan");
+            status.setRollbackOnly();
+        });
+        assertEquals(0, usages.count());
+        service.goiDichVu(order(key, 1), "letan");
+        assertEquals(1, usages.count());
+    }
+    @Test void schemaMatchesOriginalGroupSqlWithOnlyTheStayColumnAdded() throws Exception {
+        String source = java.nio.file.Files.readString(java.nio.file.Path.of("qlks.sql")).replace("\r\n", "\n");
+        String original = source.substring(0, source.indexOf("-- 1. Nạp dữ liệu"))
+                .replace("CREATE DATABASE IF NOT EXISTS QLKS;", "").replace("USE QLKS;", "").trim();
+        String schema = java.nio.file.Files.readString(java.nio.file.Path.of("src/test/resources/qlks-test-schema.sql")).replace("\r\n", "\n");
+        assertEquals(original + "\n\nALTER TABLE su_dung_dich_vu ADD COLUMN ma_dat_phong INT NULL;\n", schema);
+        var jdbc = new org.springframework.jdbc.core.JdbcTemplate(context.getBean(javax.sql.DataSource.class));
+        var columns = jdbc.queryForList("SELECT LOWER(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'SU_DUNG_DICH_VU'", String.class);
+        assertEquals(Set.of("id", "so_phong", "so_giay_to", "ma_dich_vu", "so_luong", "thanh_tien", "ngay_su_dung", "ma_dat_phong"), new HashSet<>(columns));
+        service.goiDichVu(order(UUID.randomUUID().toString(), 2), "letan");
+        BigDecimal total = jdbc.queryForObject("SELECT COALESCE(SUM(thanh_tien), 0) FROM su_dung_dich_vu WHERE ma_dat_phong = ?", BigDecimal.class, stayId);
+        assertEquals(0, new BigDecimal("40000").compareTo(total));
+    }
+    @Test void oldChargeWithoutStayHasAFriendlyErrorInsteadOfBeingAssignedToTheWrongGuest() {
+        SuDungDichVu old = new SuDungDichVu();
+        old.setDichVu(services.findById(serviceId).orElseThrow());
+        old.setSoPhong("202"); old.setSoGiayTo("TEST-202"); old.setSoLuong(1);
+        old.setThanhTien(new BigDecimal("20000")); old.setNgaySuDung(LocalDateTime.now().minusMonths(1));
+        Long id = usages.save(old).getId();
+        assertThrows(DichVuException.class, () -> notifications.guiLai(id, stayId));
+        assertEquals(0, service.tongTienTheoLuotO(stayId).signum());
     }
     @Test void threeIndependentJavaClientsReceiveTheCommittedDatabaseOrder() throws Exception {
         String token = org.example.quan_li_khach_san.network.ServiceProtocol.token();
@@ -227,7 +279,7 @@ class DichVuIntegrationTests {
             while(server.getSubscriberCount()!=3 && System.nanoTime()<deadline) Thread.sleep(20);
             assertEquals(3,server.getSubscriberCount());
             Long id=service.goiDichVu(order(UUID.randomUUID().toString(),2),"letan");
-            var notifier=new DichVuNotificationService(usages,transactionManager,"127.0.0.1",server.getPort(),token);
+            var notifier=new DichVuNotificationService(usages,transactionManager,requests,"127.0.0.1",server.getPort(),token);
             assertTrue(notifier.guiLai(id)); assertTrue(service.daGui(id));
             deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
             while(System.nanoTime()<deadline) {
