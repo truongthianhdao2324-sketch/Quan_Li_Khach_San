@@ -29,15 +29,21 @@ public class KhachHang {
     @Column(name = "email")
     private String email;
 
-    @Transient
-    private String soPhong;
+    @Column(name = "trang_thai")
+    private String trangThai = "Hoạt động";
+
+    @Column(name = "ly_do_huy", length = 500)
+    private String lyDoHuy;
+
+    // Lưu tên đăng nhập (ten_dang_nhap) của tài khoản thực hiện hủy
+    @Column(name = "nguoi_huy", length = 50)
+    private String nguoiHuy;
 
     public KhachHang() {}
 
-    // Chổ này là tự động sinh dạng mã (KH001, KH002 ...) ai làm phần nay lưu ý nha
     public String getMaHienThi() {
         if (maKhachHang == null) return "";
-        return String.format("KH%03d", maKhachHang);
+        return String.format("KH%04d", maKhachHang);
     }
 
     // Getters và Setters
@@ -62,6 +68,14 @@ public class KhachHang {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getSoPhong() { return soPhong; }
-    public void setSoPhong(String soPhong) { this.soPhong = soPhong; }
+    public String getTrangThai() {
+        return (trangThai == null || trangThai.isBlank()) ? "Hoạt động" : trangThai;
+    }
+    public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+
+    public String getLyDoHuy() { return lyDoHuy; }
+    public void setLyDoHuy(String lyDoHuy) { this.lyDoHuy = lyDoHuy; }
+
+    public String getNguoiHuy() { return nguoiHuy; }
+    public void setNguoiHuy(String nguoiHuy) { this.nguoiHuy = nguoiHuy; }
 }
