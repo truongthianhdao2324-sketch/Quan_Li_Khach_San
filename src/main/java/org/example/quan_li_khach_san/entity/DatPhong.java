@@ -1,9 +1,13 @@
 package org.example.quan_li_khach_san.entity;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
-
+@Entity
+@Table(name = "dat_phong")
 public class DatPhong {
-
+    @Id // <--- THÊM DÒNG NÀY VÀO
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
         private int maDatPhong;
         private int maKhachHang;
         private int maPhong;

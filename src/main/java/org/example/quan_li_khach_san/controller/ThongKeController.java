@@ -12,7 +12,7 @@ public class ThongKeController {
     @Autowired
     private KhachHangRepository khachHangRepository;
 
-    @GetMapping("/admin/dashboard")
+    @GetMapping("/admin/thong-ke")
     public String hienThiDashboard(Model model) {
         // Lấy số lượng khách thực tế từ hệ thống của Thành viên 1
         long tongLuongKhach = khachHangRepository.count();
