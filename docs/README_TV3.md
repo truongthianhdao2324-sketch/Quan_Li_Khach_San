@@ -3,7 +3,7 @@
 ## Chạy cùng database nhóm
 
 1. Dùng `qlks.sql` và cấu hình MySQL của nhóm.
-2. Chạy `sql/bo_sung_ma_dat_phong.sql` trên database `QLKS` hiện có. Script chỉ thêm cột `ma_dat_phong` cho bảng `su_dung_dich_vu` và ghép các khoản cũ khớp đúng một lượt ở. Các dòng chưa ghép được sẽ được liệt kê để kiểm tra, không xóa hay đổi số tiền.
+2. Trước khi ghép, nhóm trưởng đối chiếu cột `su_dung_dich_vu.ma_dat_phong` với `dat_phong.ma_dat_phong`. Code TV3 và truy vấn tổng dịch vụ TV4 đều dùng cột này. Việc cập nhật SQL chung và dữ liệu cũ do nhóm trưởng xử lý; TV3 không kèm script sửa database.
 3. Mở dự án với JDK 17, chạy:
 
 ```powershell
