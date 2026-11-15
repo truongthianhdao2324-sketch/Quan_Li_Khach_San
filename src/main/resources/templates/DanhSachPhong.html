@@ -436,18 +436,35 @@
                 transform: translateX(0);
             }
         }
+        .nut-dang-xuat{
+            margin-top: auto;
+            color: #ff4d6d;
+        }
     </style>
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <h2>🌸 KÊNH LỄ TÂN</h2>
-    <a th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
-    <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
-    <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
-    <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
-    <a th:href="@{/dang-nhap}" style="margin-top: auto; color: #ff4d6d;">Đăng xuất</a>
+<!--    KENH-->
+    <h2 th:if="${session.user.vaiTro == 'ADMIN'}">👑 QUẢN TRỊ VIÊN</h2>
+    <h2 th:if="${session.user.vaiTro != 'ADMIN'}">🏨 KÊNH LỄ TÂN</h2>
+
+<!--ĐIỀU HƯỚNG CHUYỄN TRANG-->
+
+    <!-- Admin -->
+    <div th:if="${session.user.vaiTro == 'ADMIN'}">
+        <a th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
+        <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+        <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
+    </div>
+
+    <!-- Lễ tân -->
+    <div th:if="${session.user.vaiTro != 'ADMIN'}">
+        <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
+    </div>
+
+    <a th:href="@{/dang-nhap}" class="nut-dang-xuat">Đăng xuất</a>
 </div>
 
 <!-- MAIN CONTENT -->
