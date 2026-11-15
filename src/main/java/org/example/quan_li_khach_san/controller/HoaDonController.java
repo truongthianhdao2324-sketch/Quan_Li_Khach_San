@@ -1,6 +1,8 @@
 package org.example.quan_li_khach_san.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.quan_li_khach_san.entity.*;
+import org.example.quan_li_khach_san.service.HoaDonNetworkService;
 import org.example.quan_li_khach_san.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -8,12 +10,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
-@RequestMapping("/hoadon")
 public class HoaDonController {
 
     @Autowired
@@ -25,8 +31,11 @@ public class HoaDonController {
     @Autowired
     private RoomRepository roomRepository;
 
-    // 1. Danh sách hóa đơn
-    @GetMapping("/danhsach")
+    @Autowired
+    private HoaDonNetworkService hoaDonNetworkService;
+
+    // 1. Danh sách hóa đơn (Kênh Lễ tân)
+    @GetMapping("/hoadon/danhsach")
     public String danhsachHoaDon(
             @RequestParam(value = "tuKhoa", required = false) String tuKhoa,
             @RequestParam(value = "trangThai", required = false) String trangThai,
@@ -34,7 +43,7 @@ public class HoaDonController {
 
         String keyword = (tuKhoa != null) ? tuKhoa.trim() : null;
         List<HoaDon> dsHoaDon = hoaDonRepository.timKiemHoaDon(keyword, trangThai);
-        dsHoaDon.sort(java.util.Comparator.comparing(HoaDon::getMaHoaDon));
+        dsHoaDon.sort(Comparator.comparing(HoaDon::getMaHoaDon));
 
         model.addAttribute("danhSachHoaDon", dsHoaDon);
         model.addAttribute("tuKhoa", tuKhoa);
@@ -44,7 +53,7 @@ public class HoaDonController {
     }
 
     // 2. Trang Check-out tính tiền theo số phòng
-    @GetMapping("/checkout/{soPhong}")
+    @GetMapping("/hoadon/checkout/{soPhong}")
     public String tinhTienCheckOut(@PathVariable("soPhong") String soPhong, Model model) {
         Room room = roomRepository.findById(soPhong).orElse(null);
         DatPhong datPhong = datPhongRepository
@@ -63,7 +72,6 @@ public class HoaDonController {
 
         double tienPhong = soNgayO * room.getGiaPhong();
 
-        // Lấy tổng tiền dịch vụ thực tế từ Repository (nếu chưa có dịch vụ sẽ trả về 0)
         Double tienDichVuDb = hoaDonRepository.tinhTongTienDichVuTheoDatPhong(datPhong.getMaDatPhong());
         double tienDichVu = (tienDichVuDb != null) ? tienDichVuDb : 0.0;
 
@@ -82,7 +90,7 @@ public class HoaDonController {
     }
 
     // 3. Xác nhận thanh toán (Giao dịch nguyên tố @Transactional)
-    @PostMapping("/thanhtoan")
+    @PostMapping("/hoadon/thanhtoan")
     @Transactional
     public String xacNhanThanhToan(@ModelAttribute("hoaDon") HoaDon hoaDon) {
         hoaDon.setNgayLap(LocalDateTime.now());
@@ -106,7 +114,7 @@ public class HoaDonController {
     }
 
     // 4. Xem biên lai chi tiết để in
-    @GetMapping("/chitiet/{id}")
+    @GetMapping("/hoadon/chitiet/{id}")
     public String chiTietHoaDon(@PathVariable("id") Long id, Model model) {
         HoaDon hoaDon = hoaDonRepository.findById(id).orElse(null);
         if (hoaDon == null) return "redirect:/hoadon/danhsach";
@@ -114,8 +122,9 @@ public class HoaDonController {
         model.addAttribute("hoaDon", hoaDon);
         return "ChiTietHoaDon";
     }
+
     // 5. Kiểm tra tên lễ tân bằng Java trước khi cho phép in biên lai
-    @PostMapping("/chitiet/{id}/in")
+    @PostMapping("/hoadon/chitiet/{id}/in")
     public String xacNhanInHoaDon(@PathVariable("id") Long id,
                                   @RequestParam(value = "tenLeTan", required = false) String tenLeTan,
                                   Model model) {
@@ -124,16 +133,74 @@ public class HoaDonController {
 
         model.addAttribute("hoaDon", hoaDon);
 
-        // Kiểm tra bằng Java: Nếu chưa nhập tên lễ tân thì báo lỗi và không cho in
         if (tenLeTan == null || tenLeTan.trim().isEmpty()) {
             model.addAttribute("loiLeTan", "⚠️ Vui lòng nhập họ tên lễ tân trước khi in biên lai!");
             model.addAttribute("choPhepIn", false);
             return "ChiTietHoaDon";
         }
 
-        // Hợp lệ -> giữ lại tên lễ tân và cho phép kích hoạt lệnh in
         model.addAttribute("tenLeTan", tenLeTan.trim());
         model.addAttribute("choPhepIn", true);
         return "ChiTietHoaDon";
+    }
+
+    // =========================================================================
+    // 6. KÊNH ADMIN: ĐỒNG BỘ HÓA ĐƠN QUA URLCONNECTION (CHƯƠNG 5)
+    // =========================================================================
+    @GetMapping("/admin/hoadon")
+    public String trangHoaDonAdmin(
+            @RequestParam(value = "tuKhoa", required = false) String tuKhoa,
+            @RequestParam(value = "trangThai", required = false) String trangThai,
+            Model model) {
+
+        HoaDonNetworkService.KetQuaDongBo kq = hoaDonNetworkService.dongBoTuServer(tuKhoa, trangThai);
+
+        model.addAttribute("danhSachDongBo", kq.danhSachHoaDon);
+        model.addAttribute("tongDoanhThu", kq.tongDoanhThu);
+        model.addAttribute("tongHoaDon", kq.soDaThanhToan + kq.soChuaThanhToan);
+        model.addAttribute("soDaThanhToan", kq.soDaThanhToan);
+        model.addAttribute("soChuaThanhToan", kq.soChuaThanhToan);
+        model.addAttribute("tuKhoa", tuKhoa);
+        model.addAttribute("trangThai", trangThai != null ? trangThai : "");
+        model.addAttribute("ketNoiThanhCong", kq.ketNoiThanhCong);
+        model.addAttribute("thoiGianCapNhat", kq.thoiGianCapNhat);
+        model.addAttribute("nhatKyMang", kq.nhatKyMang);
+
+        return "AdminHoaDon";
+    }
+
+    // 7. Xuất báo cáo CSV trực tiếp bằng Java
+    @GetMapping("/admin/hoadon/xuat-csv")
+    public void xuatBaoCaoCsvAdmin(
+            @RequestParam(value = "tuKhoa", required = false) String tuKhoa,
+            @RequestParam(value = "trangThai", required = false) String trangThai,
+            HttpServletResponse response) throws Exception {
+
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String fileName = "BaoCaoHoaDon_Admin_" + timestamp + ".csv";
+
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+        HoaDonNetworkService.KetQuaDongBo kq = hoaDonNetworkService.dongBoTuServer(tuKhoa, trangThai);
+
+        try (PrintWriter writer = new PrintWriter(
+                new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
+            writer.write('\ufeff');
+            writer.println("MaHD,SoPhong,KhachHang,NgayLap,TienPhong,TienDichVu,TongTien,TrangThai");
+
+            for (String[] row : kq.danhSachHoaDon) {
+                writer.printf("%s,%s,\"%s\",%s,%.0f,%.0f,%.0f,\"%s\"%n",
+                        row[1],
+                        row[2],
+                        row[3].replace("\"", "\"\""),
+                        row[4],
+                        Double.parseDouble(row[5]),
+                        Double.parseDouble(row[6]),
+                        Double.parseDouble(row[7]),
+                        row[8]);
+            }
+        }
     }
 }
