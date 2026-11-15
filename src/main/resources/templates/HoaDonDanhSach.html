@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Hóa Đơn - Kênh Lễ Tân</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff9fa;
+            color: #5c5055;
+        }
+
+        /* Sidebar khớp 100% kích thước thực tế (260px + 20px*2 padding = 300px) của file mẫu */
+        .sidebar {
+            width: 300px;
+            background-color: #fde2e4;
+            color: #6b4c58;
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(253, 226, 228, 0.4);
+        }
+
+        .sidebar h2 {
+            font-size: 19px;
+            margin-top: 15px;
+            margin-bottom: 40px;
+            color: #593945;
+        }
+
+        .sidebar .nav-link {
+            color: #6b4c58;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #ff758c;
+            color: #ffffff;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            color: #593945;
+        }
+
+        .revenue-pill {
+            background-color: #ffffff;
+            color: #ff5c77;
+            border: 1px solid #fae1dd;
+            box-shadow: 0 4px 15px rgba(250, 225, 221, 0.6);
+        }
+
+        .content-card {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(250, 225, 221, 0.6);
+            border: 1px solid #fae1dd !important;
+            margin-top: 25px;
+        }
+
+        .btn-pink {
+            background-color: #ff758c;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-pink:hover {
+            background-color: #ff5c77;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-pink {
+            background-color: #fff0f3;
+            color: #ff5c77;
+            border: 1px solid #ffd6dd;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .btn-outline-pink:hover {
+            background-color: #ff758c;
+            color: #ffffff;
+            border-color: #ff758c;
+        }
+
+        .table-wrap {
+            border-radius: 14px;
+            border: 1px solid #fae1dd;
+        }
+
+        .table-hotel thead th {
+            background-color: #fff0f3;
+            color: #6b4c58;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            padding: 16px 18px;
+            border-bottom: 1px solid #fce4ec;
+        }
+
+        .table-hotel tbody td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #fce4ec;
+            font-size: 14px;
+            color: #5c5055;
+        }
+
+        .table-hotel tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-hotel tbody tr:hover {
+            background-color: #fffafb;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #ff758c;
+            box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2);
+        }
+    </style>
+</head>
+<body class="d-flex vh-100 overflow-hidden m-0 p-0">
+
+<!-- SIDEBAR KÊNH LỄ TÂN -->
+<aside class="sidebar d-flex flex-column flex-shrink-0">
+    <h2 class="fw-bold text-center">🌸 KÊNH LỄ TÂN</h2>
+    <nav class="nav flex-column flex-grow-1">
+        <a class="nav-link d-flex align-items-center" th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+        <a class="nav-link active d-flex align-items-center" th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
+        <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-nhap}">Đăng xuất</a>
+    </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content flex-grow-1 overflow-auto">
+
+    <!-- Tiêu đề & Tổng doanh thu -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <h1 class="fw-bold page-title m-0">Quản Lý Hệ Thống Hóa Đơn Khách Sạn</h1>
+
+        <div class="revenue-pill rounded-pill px-4 py-2 d-flex align-items-center gap-2" th:if="${tongDoanhThu != null}">
+            <span class="small fw-semibold text-secondary">Tổng doanh thu:</span>
+            <span class="fs-6 fw-bold"
+                  th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+        </div>
+    </div>
+
+    <!-- Card nội dung chính -->
+    <div class="card content-card border-0">
+
+        <!-- Thanh tìm kiếm & lọc trạng thái (Bootstrap Grid) -->
+        <form method="get" th:action="@{/hoadon/danhsach}" class="row g-2 align-items-center mb-4">
+            <div class="col-md-6">
+                <input type="text" name="tuKhoa" th:value="${tuKhoa}" class="form-control py-2 rounded-3"
+                       placeholder="🔍 Tìm theo Mã HĐ (HD0001), số phòng, tên khách hàng...">
+            </div>
+            <div class="col-md-4">
+                <select name="trangThai" class="form-select py-2 rounded-3">
+                    <option value="" th:selected="${trangThai == null or trangThai == ''}">-- Tất cả trạng thái --</option>
+                    <option value="Đã thanh toán" th:selected="${trangThai == 'Đã thanh toán'}">Đã thanh toán</option>
+                    <option value="Chưa thanh toán" th:selected="${trangThai == 'Chưa thanh toán'}">Chưa thanh toán</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-pink py-2">Tìm kiếm</button>
+            </div>
+        </form>
+
+        <!-- Bảng danh sách hóa đơn -->
+        <div class="table-responsive table-wrap">
+            <table class="table table-hotel align-middle mb-0">
+                <thead>
+                <tr>
+                    <th class="text-nowrap">Mã HĐ</th>
+                    <th class="text-nowrap">Phòng</th>
+                    <th class="text-nowrap">Khách hàng</th>
+                    <th class="text-nowrap">Ngày lập</th>
+                    <th class="text-end text-nowrap">Tiền phòng</th>
+                    <th class="text-end text-nowrap">Tiền dịch vụ</th>
+                    <th class="text-end text-nowrap">Tổng tiền</th>
+                    <th class="text-center text-nowrap">Trạng thái</th>
+                    <th class="text-center text-nowrap">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="hd : ${danhSachHoaDon}">
+                    <td class="fw-bold text-nowrap" style="color: #ff758c;" th:text="${hd.maHienThi}">HD0001</td>
+                    <td class="text-nowrap">
+                        <span class="badge rounded-3 px-2 py-1 fw-semibold"
+                              style="background-color: #fff0f3; color: #ff5c77;"
+                              th:text="${hd.datPhong != null ? hd.datPhong.soPhong : 'N/A'}">P101</span>
+                    </td>
+                    <td class="fw-semibold text-nowrap" style="color: #593945;"
+                        th:text="${hd.datPhong != null and hd.datPhong.khachHang != null ? hd.datPhong.khachHang.hoTen : 'Khách lẻ'}">
+                        Nguyễn Văn A
+                    </td>
+                    <td class="text-nowrap"
+                        th:text="${hd.ngayLap != null ? #temporals.format(hd.ngayLap, 'dd/MM/yyyy HH:mm') : 'Chưa lập'}">
+                        12/11/2026 21:00
+                    </td>
+                    <td class="text-end text-nowrap"
+                        th:text="${#numbers.formatDecimal(hd.tienPhong, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</td>
+                    <td class="text-end text-nowrap"
+                        th:text="${#numbers.formatDecimal(hd.tienDichVu, 0, 'COMMA', 0, 'POINT')} + ' đ'">150,000 đ</td>
+                    <td class="text-end fw-bold text-nowrap" style="color: #ff758c;"
+                        th:text="${#numbers.formatDecimal(hd.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">650,000 đ</td>
+                    <td class="text-center text-nowrap">
+                        <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                              th:classappend="${hd.trangThai == 'Đã thanh toán' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis'}"
+                              th:text="${hd.trangThai}">Đã thanh toán</span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <a th:href="@{/hoadon/chitiet/{id}(id=${hd.maHoaDon})}"
+                           class="btn btn-sm btn-outline-pink px-3">
+                            Xem biên lai
+                        </a>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(danhSachHoaDon)}">
+                    <td colspan="9" class="text-center fst-italic py-5" style="color: #bfa5ad;">
+                        Không có dữ liệu hóa đơn nào!
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>

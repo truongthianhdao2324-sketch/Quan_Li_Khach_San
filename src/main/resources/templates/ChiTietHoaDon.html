@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Biên lai ' + ${hoaDon.maHienThi}">Biên lai thanh toán</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ece7e1;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+            color: #16213e;
+            font-size: 0.875rem;
+        }
+        .receipt-sheet {
+            max-width: 580px;
+            background-color: #fcfaf4;
+            background-image: radial-gradient(rgba(197, 155, 39, 0.04) 1px, transparent 0);
+            background-size: 16px 16px;
+            border-color: #e6dfd1 !important;
+        }
+        .hotel-name {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            letter-spacing: 2.5px;
+            color: #16213e;
+        }
+        .text-xs {
+            font-size: 0.78rem;
+        }
+        .receipt-table th,
+        .receipt-table td {
+            background-color: transparent !important;
+            color: #1e293b;
+        }
+        .receipt-table thead th {
+            border-top: 1.5px solid #16213e !important;
+            border-bottom: 1.5px solid #16213e !important;
+        }
+        .receipt-table tbody tr:last-child td {
+            border-bottom: 1.5px solid #16213e !important;
+        }
+        .receptionist-input {
+            background-color: #fffdf7;
+            border: 1px dashed #94a3b8;
+            border-radius: 4px;
+            color: #16213e;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-align: center;
+            width: 85%;
+            padding: 2px 6px;
+            outline: none;
+        }
+        .receptionist-input:focus {
+            border-color: #16213e;
+            background-color: #ffffff;
+        }
+        .receptionist-input.is-invalid {
+            border: 1.5px solid #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            .receipt-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100% !important;
+            }
+            .receptionist-input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+            }
+            .receptionist-input::placeholder {
+                color: transparent !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column align-items-center py-3 px-2 pb-5">
+
+<form id="formInBienLai" th:action="@{/hoadon/chitiet/{id}/in(id=${hoaDon.maHoaDon})}" method="post"
+      class="w-100 d-flex flex-column align-items-center">
+
+    <div class="card receipt-sheet w-100 rounded-0 shadow p-3 p-sm-4">
+
+        <!-- Header khách sạn -->
+        <div class="text-center mb-3">
+            <div class="h4 fw-bold text-uppercase hotel-name mb-1">HÓA ĐƠN KHÁCH SẠN</div>
+            <div class="text-xs text-secondary lh-sm">
+                124 đường Lê Trọng Tấn, Tây Thạnh, Tân Phú <br>• +84 932 861 549
+            </div>
+        </div>
+
+        <!-- Tiêu đề Biên lai -->
+        <div class="text-center my-3">
+            <h1 class="h5 fw-bold text-uppercase mb-0" style="letter-spacing: 1px;">BIÊN LAI THANH TOÁN</h1>
+            <div class="text-xs fw-medium text-uppercase text-secondary" style="letter-spacing: 2px;">RECEIPT OF PAYMENT</div>
+        </div>
+
+        <!-- Thông tin hóa đơn & khách hàng -->
+        <div class="row mb-3 text-xs lh-base">
+            <div class="col-8">
+                <div>
+                    <span class="fw-bold">Mã hóa đơn / Invoice No:</span>
+                    <span>#<span th:text="${hoaDon.maHienThi}">HD0020</span></span>
+                </div>
+                <div>
+                    <span class="fw-bold">Khách hàng / Guest:</span>
+                    <span class="text-uppercase fw-semibold"
+                          th:text="${hoaDon.datPhong != null and hoaDon.datPhong.khachHang != null ? hoaDon.datPhong.khachHang.hoTen : 'KHÁCH LẺ'}">
+                        BÙI TUYẾT NHI
+                    </span>
+                </div>
+                <div>
+                    <span class="fw-bold">Phòng / Room:</span>
+                    <span th:text="${hoaDon.datPhong != null ? hoaDon.datPhong.soPhong : 'N/A'}">502</span>
+                </div>
+                <div>
+                    <span class="fw-bold">Thời gian / Stay:</span>
+                    <span th:if="${hoaDon.datPhong != null and hoaDon.datPhong.ngayNhanPhong != null}">
+                        <span th:text="${#temporals.format(hoaDon.datPhong.ngayNhanPhong, 'dd/MM/yyyy')}">08/10/2026</span>
+                        -
+                        <span th:text="${hoaDon.datPhong.ngayTraPhong != null ? #temporals.format(hoaDon.datPhong.ngayTraPhong, 'dd/MM/yyyy') : (hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy') : '---')}">09/10/2026</span>
+                    </span>
+                    <span th:if="${hoaDon.datPhong == null or hoaDon.datPhong.ngayNhanPhong == null}"
+                          th:text="${hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy HH:mm') : '---'}">09/10/2026</span>
+                </div>
+            </div>
+            <div class="col-4 text-end">
+                <span class="fw-bold">Ngày / Date:</span><br>
+                <span th:text="${hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy') : '---'}">09/10/2026</span>
+            </div>
+        </div>
+
+        <!-- Bảng chi tiết dịch vụ -->
+        <div class="table-responsive mb-2">
+            <table class="table table-sm table-bordered align-middle text-xs receipt-table mb-0">
+                <thead>
+                <tr>
+                    <th class="text-center py-1" style="width: 44px;">STT<div class="fw-normal text-secondary">No.</div></th>
+                    <th class="py-1">Diễn giải / Description</th>
+                    <th class="text-center py-1" style="width: 68px;">SL<div class="fw-normal text-secondary">Qty</div></th>
+                    <th class="text-end py-1" style="width: 110px;">Đơn giá<div class="fw-normal text-secondary">Unit Price</div></th>
+                    <th class="text-end py-1" style="width: 115px;">Thành tiền<div class="fw-normal text-secondary">Amount</div></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="text-center py-2">1</td>
+                    <td class="py-2">Tiền thuê phòng (Room <span th:text="${hoaDon.datPhong != null ? hoaDon.datPhong.soPhong : ''}">502</span>)</td>
+                    <td class="text-center py-2">1</td>
+                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                </tr>
+                <tr>
+                    <td class="text-center py-2">2</td>
+                    <td class="py-2">Dịch vụ phát sinh (Extra Services)</td>
+                    <td class="text-center py-2">1</td>
+                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
+                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bảng tổng kết tiền -->
+        <div class="row justify-content-end mb-1">
+            <div class="col-8 col-sm-7">
+                <table class="table table-sm table-borderless text-xs receipt-table mb-1">
+                    <tr>
+                        <td class="text-secondary py-0">Tạm tính / Subtotal:</td>
+                        <td class="text-end fw-medium py-0 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary py-1">Thuế VAT (đã gồm) / Tax:</td>
+                        <td class="text-end fw-medium py-1 text-nowrap">0 đ</td>
+                    </tr>
+                    <tr class="border-top border-dark">
+                        <td class="fw-bold fs-6 pt-1 text-nowrap">Tổng cộng / Total:</td>
+                        <td class="text-end fw-bold fs-6 pt-1 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-end text-xs mb-4">
+            <strong>Phương thức / Payment:</strong> Tiền mặt / Chuyển khoản
+        </div>
+
+        <!-- Khu vực chữ ký 2 cột -->
+        <div class="row text-center mt-2 mb-3">
+            <div class="col-6">
+                <div class="fw-bold text-xs">Chữ ký khách hàng</div>
+                <div class="text-xs text-secondary mb-1">Guest's Signature</div>
+                <div style="height: 54px;"></div>
+                <div class="border-top border-secondary w-75 mx-auto pt-1 fw-bold text-xs"
+                     th:text="${hoaDon.datPhong != null and hoaDon.datPhong.khachHang != null ? hoaDon.datPhong.khachHang.hoTen : ''}">
+                    Bùi Tuyết Nhi
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="fw-bold text-xs">Lễ tân</div>
+                <div class="text-xs text-secondary mb-1">Receptionist</div>
+                <div style="height: 54px;"></div>
+                <div class="border-top border-secondary w-75 mx-auto pt-1">
+                    <input type="text" name="tenLeTan" id="tenLeTan"
+                           th:value="${tenLeTan}"
+                           th:classappend="${loiLeTan != null ? 'is-invalid' : ''}"
+                           class="receptionist-input"
+                           placeholder="Nhập họ tên lễ tân...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Lời cảm ơn cuối biên lai -->
+        <div class="text-center text-xs text-secondary mt-2">
+            <div>Cảm ơn Quý khách đã lựa chọn The Grand Lotus!</div>
+            <div class="fst-italic">Thank you for staying with us!</div>
+        </div>
+    </div>
+
+    <!-- Thanh thông báo lỗi từ Java trả về khi chưa nhập tên lễ tân (ẩn khi in) -->
+    <div th:if="${loiLeTan != null}" class="alert alert-danger py-2 px-3 mt-3 mb-0 small fw-semibold no-print" role="alert">
+        <span th:text="${loiLeTan}">⚠️ Vui lòng nhập họ tên lễ tân trước khi in biên lai!</span>
+    </div>
+
+    <!-- Thanh nút thao tác (ẩn khi in) -->
+    <div class="d-flex gap-2 mt-3 no-print">
+        <button type="submit" class="btn btn-sm btn-dark px-3 py-2 fw-semibold shadow-sm">🖨️ In biên lai</button>
+        <a th:href="@{/hoadon/danhsach}" class="btn btn-sm btn-outline-secondary bg-white px-3 py-2 fw-semibold">← Danh sách hóa đơn</a>
+    </div>
+
+</form>
+
+<!-- Java bật cờ choPhepIn = true thì tự động mở hộp thoại in -->
+<script th:if="${choPhepIn}">
+    window.addEventListener('load', function () {
+        window.print();
+    });
+</script>
+
+<!-- Chuyển hướng phím tắt Ctrl + P về cho Java kiểm tra -->
+<script>
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+            e.preventDefault();
+            document.getElementById('formInBienLai').submit();
+        }
+    });
+</script>
+
+</body>
+</html>
