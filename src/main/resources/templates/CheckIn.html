@@ -19,21 +19,25 @@
     <div class="card shadow p-4">
         <form action="#" th:action="@{/checkin/save}" th:object="${datPhong}" method="post">
 
-            <!-- Chọn Khách Hàng -->
-            <div class="mb-3">
-                <label for="maKhachHang" class="form-label">Chọn Khách Hàng:</label>
-                <select class="form-select" id="maKhachHang" th:field="*&#123;maKhachHang&#125;" required>
-                    <option value="">-- Chọn khách hàng --</option>
-                    <option th:each="kh : ${listKhachHang}" th:value="${kh.id}" th:text="${kh.hoTen} + ' (SĐT: ' + ${kh.soDienThoai} + ')'"></option>
-                </select>
-            </div>
+            <!-- Ví dụ chọn Khách Hàng -->
+            <select th:field="*{maKhachHang}" class="form-control">
+                <option value="">-- Chọn khách hàng --</option>
+                <option th:each="kh : ${listKhachHang}"
+                        th:value="${kh.maKhachHang}"
+                        th:text="${kh.hoTen}">
+                </option>
+            </select>
 
             <!-- Chọn Phòng Trống -->
             <div class="mb-3">
                 <label for="maPhong" class="form-label">Chọn Phòng Trống:</label>
-                <select class="form-select" id="maPhong" th:field="*&#123;maPhong&#125;" required>
+                <select class="form-select" id="maPhong" th:field="*{maPhong}" required>
                     <option value="">-- Chọn phòng trống --</option>
-                    <option th:each="p : ${listPhongTrong}" th:value="${p}" th:text="'Phòng: ' + ${p}"></option>
+                    <!-- Giả sử thuộc tính trong class Room là soPhong hoặc maPhong -->
+                    <option th:each="p : ${listPhongTrong}"
+                            th:value="${p.soPhong}"
+                            th:text="'Phòng: ' + ${p.soPhong}">
+                    </option>
                 </select>
             </div>
 
