@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Hóa Đơn & Đồng Bộ Doanh Thu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff9fa;
+            color: #5c5055;
+        }
+
+        /* Sidebar đồng bộ 100% với AdminDashboard.html */
+        .sidebar {
+            width: 300px;
+            background-color: #fde2e4;
+            color: #6b4c58;
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(253, 226, 228, 0.4);
+        }
+
+        .sidebar h2 {
+            font-size: 19px;
+            font-weight: 700;
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 40px;
+            color: #593945;
+        }
+
+        .sidebar a {
+            color: #6b4c58;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #ff758c;
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+        }
+
+        .main-content {
+            padding: 34px 40px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            color: #593945;
+        }
+
+        .sync-status-pill {
+            background-color: #ffffff;
+            border: 1px solid #fae1dd;
+            box-shadow: 0 4px 15px rgba(250, 225, 221, 0.5);
+            font-size: 13px;
+        }
+
+        .stat-card {
+            background-color: #ffffff;
+            border-radius: 18px;
+            padding: 20px 22px;
+            border: 1px solid #fae1dd;
+            box-shadow: 0 5px 20px rgba(250, 225, 221, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .content-card {
+            background-color: #ffffff;
+            padding: 28px;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(250, 225, 221, 0.6);
+            border: 1px solid #fae1dd !important;
+            margin-top: 22px;
+        }
+
+        .btn-pink {
+            background-color: #ff758c;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+            transition: all 0.25s;
+        }
+
+        .btn-pink:hover {
+            background-color: #ff5c77;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-pink {
+            background-color: #fff0f3;
+            color: #ff5c77;
+            border: 1px solid #ffd6dd;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-pink:hover,
+        .btn-outline-pink.active {
+            background-color: #ff758c;
+            color: #ffffff;
+            border-color: #ff758c;
+        }
+
+        .table-wrap {
+            border-radius: 14px;
+            border: 1px solid #fae1dd;
+            overflow: hidden;
+        }
+
+        .table-hotel thead th {
+            background-color: #fff0f3;
+            color: #6b4c58;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            padding: 15px 16px;
+            border-bottom: 1px solid #fce4ec;
+        }
+
+        .table-hotel tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #fce4ec;
+            font-size: 14px;
+            color: #5c5055;
+        }
+
+        .table-hotel tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-hotel tbody tr:hover {
+            background-color: #fffafb;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #ff758c;
+            box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2);
+        }
+
+        /* Nhật ký đồng bộ mạng (Network Sync Log) */
+        .network-console {
+            background-color: #2b2126;
+            color: #8ce99a;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12.5px;
+            border-radius: 12px;
+            padding: 14px 16px;
+            max-height: 150px;
+            overflow-y: auto;
+            line-height: 1.55;
+        }
+
+        .receipt-sheet {
+            background-color: #fcfaf4;
+            background-image: radial-gradient(rgba(197, 155, 39, 0.05) 1px, transparent 0);
+            background-size: 16px 16px;
+            border: 1px solid #e6dfd1;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+            color: #16213e;
+        }
+
+        .hotel-name {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            letter-spacing: 2.5px;
+            color: #16213e;
+        }
+
+        .receipt-table thead th {
+            border-top: 1.5px solid #16213e !important;
+            border-bottom: 1.5px solid #16213e !important;
+            background: transparent !important;
+        }
+
+        .receipt-table tbody tr:last-child td {
+            border-bottom: 1.5px solid #16213e !important;
+        }
+
+        .receipt-table td {
+            background: transparent !important;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            .modal.show, .modal.show * { visibility: visible; }
+            .modal.show {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="d-flex vh-100 overflow-hidden m-0 p-0">
+
+<!-- SIDEBAR KÊNH ADMIN -->
+<aside class="sidebar d-flex flex-column flex-shrink-0">
+    <h2>👑 QUẢN TRỊ VIÊN</h2>
+    <a th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
+    <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+    <a th:href="@{/admin/hoadon}" class="active">🧾 Quản lý Hóa Đơn</a>
+    <a th:href="@{/dang-nhap}" style="margin-top: auto; margin-bottom: 0; color: #ff4d6d;">Đăng xuất</a>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content flex-grow-1 overflow-auto" id="top">
+
+    <!-- Header & Trạng thái kết nối Server -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="fw-bold page-title m-0">Quản Lý Hóa Đơn &amp; Đồng Bộ Doanh Thu</h1>
+            <p class="text-muted small mb-0 mt-1">
+                Trạm giám sát tài chính Admin • Đồng bộ qua Java <code>URLConnection</code> từ API Server (<code>/api/hoadon/dong-bo</code>)
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="sync-status-pill rounded-pill px-3 py-2 d-flex align-items-center gap-2 fw-semibold">
+                <span th:style="${ketNoiThanhCong} ? 'width:10px;height:10px;border-radius:50%;background-color:#2b8a3e;display:inline-block;' : 'width:10px;height:10px;border-radius:50%;background-color:#dc3545;display:inline-block;'"></span>
+                <span th:classappend="${ketNoiThanhCong} ? 'text-success' : 'text-danger'"
+                      th:text="${ketNoiThanhCong} ? 'Đã đồng bộ Server (localhost:8080)' : 'Mất kết nối API Server'">
+                    Đã đồng bộ Server
+                </span>
+            </div>
+
+            <a th:href="@{/admin/hoadon(tuKhoa=${tuKhoa}, trangThai=${trangThai})}"
+               class="btn btn-pink px-3 py-2 d-flex align-items-center gap-2 text-decoration-none">
+                <span>🔄</span>
+                <span>Đồng bộ từ Server</span>
+            </a>
+
+            <a th:href="@{/admin/hoadon/xuat-csv(tuKhoa=${tuKhoa}, trangThai=${trangThai})}"
+               class="btn btn-outline-pink px-3 py-2 d-flex align-items-center gap-2 text-decoration-none">
+                <span>📥</span>
+                <span>Xuất báo cáo CSV</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 Thẻ KPI Doanh thu & Hóa đơn (Dữ liệu từ Java Controller) -->
+    <div class="row g-3">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background-color: #fff0f3; color: #ff5c77;">💰</div>
+                <div>
+                    <div class="small text-muted fw-semibold">Tổng doanh thu (Đã thu)</div>
+                    <div class="fs-5 fw-bold" style="color: #ff5c77;"
+                         th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background-color: #f3f0ff; color: #7950f2;">🧾</div>
+                <div>
+                    <div class="small text-muted fw-semibold">Tổng số hóa đơn</div>
+                    <div class="fs-5 fw-bold" style="color: #593945;" th:text="${tongHoaDon}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background-color: #ebfbee; color: #2b8a3e;">✅</div>
+                <div>
+                    <div class="small text-muted fw-semibold">Đã thanh toán</div>
+                    <div class="fs-5 fw-bold text-success" th:text="${soDaThanhToan}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background-color: #fff9db; color: #e67700;">⏳</div>
+                <div>
+                    <div class="small text-muted fw-semibold">Chưa thanh toán</div>
+                    <div class="fs-5 fw-bold text-warning-emphasis" th:text="${soChuaThanhToan}">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Bảng danh sách hóa đơn -->
+    <div class="card content-card border-0">
+
+        <!-- Thanh lọc & tìm kiếm gửi request về Java -->
+        <form method="get" th:action="@{/admin/hoadon}" class="row g-2 align-items-center mb-3">
+            <div class="col-lg-5">
+                <div class="input-group">
+                    <input type="text" name="tuKhoa" th:value="${tuKhoa}" class="form-control py-2 rounded-start-3"
+                           placeholder="🔍 Tìm theo Mã HĐ (HD0001), số phòng, tên khách hàng...">
+                    <input type="hidden" name="trangThai" th:value="${trangThai}">
+                    <button type="submit" class="btn btn-pink px-3">Tìm</button>
+                </div>
+            </div>
+            <div class="col-lg-4 d-flex gap-2 flex-wrap">
+                <a th:href="@{/admin/hoadon(tuKhoa=${tuKhoa}, trangThai='')}"
+                   class="btn btn-sm btn-outline-pink px-3 py-2 text-decoration-none"
+                   th:classappend="${trangThai == ''} ? 'active' : ''">
+                    Tất cả
+                </a>
+                <a th:href="@{/admin/hoadon(tuKhoa=${tuKhoa}, trangThai='Đã thanh toán')}"
+                   class="btn btn-sm btn-outline-pink px-3 py-2 text-decoration-none"
+                   th:classappend="${trangThai == 'Đã thanh toán'} ? 'active' : ''">
+                    Đã thanh toán
+                </a>
+                <a th:href="@{/admin/hoadon(tuKhoa=${tuKhoa}, trangThai='Chưa thanh toán')}"
+                   class="btn btn-sm btn-outline-pink px-3 py-2 text-decoration-none"
+                   th:classappend="${trangThai == 'Chưa thanh toán'} ? 'active' : ''">
+                    Chưa thanh toán
+                </a>
+            </div>
+            <div class="col-lg-3 text-lg-end">
+                <span class="small text-muted">Cập nhật lúc: <strong th:text="${thoiGianCapNhat}">--:--:--</strong></span>
+            </div>
+        </form>
+
+        <!-- Bảng dữ liệu render trực tiếp từ Java -->
+        <div class="table-responsive table-wrap">
+            <table class="table table-hotel align-middle mb-0">
+                <thead>
+                <tr>
+                    <th class="text-nowrap">Mã HĐ</th>
+                    <th class="text-nowrap">Phòng</th>
+                    <th class="text-nowrap">Khách hàng</th>
+                    <th class="text-nowrap">Ngày lập</th>
+                    <th class="text-end text-nowrap">Tiền phòng</th>
+                    <th class="text-end text-nowrap">Tiền dịch vụ</th>
+                    <th class="text-end text-nowrap">Tổng tiền</th>
+                    <th class="text-center text-nowrap">Trạng thái</th>
+                    <th class="text-center text-nowrap">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row, iterStat : ${danhSachDongBo}">
+                    <td class="fw-bold text-nowrap" style="color: #ff758c;" th:text="${row[1]}">HD0001</td>
+                    <td class="text-nowrap">
+                        <span class="badge rounded-3 px-2 py-1 fw-semibold"
+                              style="background-color: #fff0f3; color: #ff5c77;"
+                              th:text="${row[2]}">P101</span>
+                    </td>
+                    <td class="fw-semibold text-nowrap" style="color: #593945;" th:text="${row[3]}">Khách hàng</td>
+                    <td class="text-nowrap" th:text="${row[4]}">14/11/2026</td>
+                    <td class="text-end text-nowrap"
+                        th:text="${#numbers.formatDecimal(T(java.lang.Double).parseDouble(row[5]), 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                    <td class="text-end text-nowrap"
+                        th:text="${#numbers.formatDecimal(T(java.lang.Double).parseDouble(row[6]), 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                    <td class="text-end fw-bold text-nowrap" style="color: #ff758c;"
+                        th:text="${#numbers.formatDecimal(T(java.lang.Double).parseDouble(row[7]), 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                    <td class="text-center text-nowrap">
+                        <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                              th:classappend="${row[8] == 'Đã thanh toán' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis'}"
+                              th:text="${row[8]}">Đã thanh toán</span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <button type="button" class="btn btn-sm btn-outline-pink px-3"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#modalBienLai-' + ${iterStat.index}">
+                            Xem biên lai
+                        </button>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(danhSachDongBo)}">
+                    <td colspan="9" class="text-center fst-italic py-5" style="color: #bfa5ad;">
+                        Không tìm thấy hóa đơn nào trong Database!
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Khung Nhật ký kết nối mạng từ Java URLConnection -->
+        <div class="mt-4">
+            <div class="mb-2">
+                <span class="small fw-bold" style="color: #593945;">
+                    📡 Nhật ký đồng bộ mạng Java (<code>java.net.URLConnection</code> ↔ <code>GET /api/hoadon/dong-bo</code>)
+                </span>
+            </div>
+            <div class="network-console">
+                <div th:each="logLine : ${nhatKyMang}" th:text="${logLine}"></div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- CÁC MODAL BIÊN LAI CHI TIẾT RENDER SẴN TỪ JAVA -->
+<div th:each="row, iterStat : ${danhSachDongBo}"
+     class="modal fade"
+     th:id="'modalBienLai-' + ${iterStat.index}"
+     tabindex="-1"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 560px;">
+        <div class="modal-content border-0 bg-transparent">
+            <div class="card receipt-sheet w-100 rounded-0 shadow p-4">
+                <div class="text-center mb-3">
+                    <div class="h4 fw-bold text-uppercase hotel-name mb-1">HÓA ĐƠN KHÁCH SẠN</div>
+                    <div class="small text-secondary lh-sm" style="font-size: 0.78rem;">
+                        124 đường Lê Trọng Tấn, Tây Thạnh, Tân Phú <br>• +84 932 861 549
+                    </div>
+                </div>
+
+                <div class="text-center my-2">
+                    <h5 class="fw-bold text-uppercase mb-0" style="letter-spacing: 1px;">BIÊN LAI THANH TOÁN</h5>
+                    <div class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 2px;">RECEIPT OF PAYMENT</div>
+                </div>
+
+                <div class="row mb-3" style="font-size: 0.8rem;">
+                    <div class="col-8">
+                        <div><strong>Mã hóa đơn / Invoice No:</strong> #<span th:text="${row[1]}">HD0001</span></div>
+                        <div><strong>Khách hàng / Guest:</strong> <span class="text-uppercase fw-semibold" th:text="${row[3]}">KHÁCH HÀNG</span></div>
+                        <div><strong>Phòng / Room:</strong> <span th:text="${row[2]}">P101</span></div>
+                        <div><strong>Trạng thái / Status:</strong> <span th:text="${row[8]}">Đã thanh toán</span></div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <strong>Ngày lập:</strong><br>
+                        <span th:text="${row[4]}">14/11/2026</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-2">
+                    <table class="table table-sm table-bordered align-middle receipt-table mb-0" style="font-size: 0.8rem;">
+                        <thead>
+                        <tr>
+                            <th class="text-center">STT</th>
+                            <th>Diễn giải / Description</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="text-center">1</td>
+                            <td>Tiền thuê phòng (<span th:text="${row[2]}">P101</span>)</td>
+                            <td class="text-end fw-semibold"
+                                th:text="${#numbers.formatDecimal(T(java.lang.Double).parseDouble(row[5]), 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">2</td>
+                            <td>Dịch vụ phát sinh (Extra Services)</td>
+                            <td class="text-end fw-semibold"
+                                th:text="${#numbers.formatDecimal(T(java.lang.Double).parseDouble(row[6]), 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end mb-3">
+                    <div class="col-7">
+                        <table class="table table-sm table-borderless receipt-table mb-0" style="font-size: 0.82rem;">
+                            <tr>
+                                <td class="text-secondary py-0">Thuế VAT (đã gồm):</td>
+                                <td class="text-end py-0">0 đ</td>
+                            </tr>
+                            <tr class="border-top border-dark">
+                                <td class="fw-bold fs-6 pt-1">Tổng cộng:</td>
+                                <td class="text-end fw-bold fs-6 pt-1"
+                                    th:text="${#numbers.formatDecimal(T(java.lang.Double).parseDouble(row[7]), 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="text-center text-secondary mt-2" style="font-size: 0.76rem;">
+                    <div>Cảm ơn Quý khách đã lựa chọn The Grand Lotus!</div>
+                    <div class="fst-italic">Bản sao lưu đối soát trên hệ thống Quản trị viên (Admin)</div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 mt-4 no-print">
+                    <button type="button" class="btn btn-sm btn-dark px-3 py-2 fw-semibold" onclick="window.print()">🖨️ In biên lai</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary bg-white px-3 py-2 fw-semibold" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
