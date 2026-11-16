@@ -16,6 +16,56 @@
             color: #5c5055;
         }
 
+        /* --- THÔNG BÁO --- */
+        .toast-message {
+            position: fixed;
+            top: 22px;
+            right: 16px;
+            min-width: 320px;
+            max-width: 380px;
+            padding: 14px 45px 14px 14px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            animation: hienThongBao 0.3s ease;
+        }
+
+        /* Thông báo thành công */
+        .toast-message.success {
+            background-color: #198754;
+        }
+
+        /* Thông báo lỗi */
+        .toast-message.error {
+            background-color: #dc3545;
+        }
+
+        /* Dấu X bên phải */
+        .toast-message::after {
+            content: "×";
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            font-size: 25px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Hiệu ứng xuất hiện */
+        @keyframes hienThongBao {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         /* --- SIDEBAR --- */
         .sidebar {
             width: 260px;
