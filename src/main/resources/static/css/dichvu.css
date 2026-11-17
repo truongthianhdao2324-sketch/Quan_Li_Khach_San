@@ -12,7 +12,7 @@ body {
 .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    width: 260px;
+    width: 300px;
     padding: 30px 20px;
     display: flex;
     flex-direction: column;
@@ -35,8 +35,8 @@ body {
 .sidebar .service-menu a { padding: 8px 10px; font-size: .9rem; font-weight: 400; }
 .sidebar .service-menu a.selected { background: #fff0f3; color: #a83453; font-weight: 600; }
 .sidebar .logout-link { margin-top: auto; color: #d94161; padding-top: 18px; }
-body > main.container { margin-left: 260px; width: calc(100% - 260px); max-width: none; padding: 32px !important; }
-body > footer.container { margin-left: 260px; width: calc(100% - 260px); max-width: none; padding-left: 32px; }
+body > main.container { margin-left: 300px; width: calc(100% - 300px); max-width: none; padding: 32px !important; }
+body > footer.container { margin-left: 300px; width: calc(100% - 300px); max-width: none; padding-left: 32px; }
 .btn-rose { background: var(--rose); border-color: var(--rose); color: white; }
 .btn-rose:hover, .btn-rose:focus { background: #ec5c77; color: white; }
 .card { border: 1px solid #fae1dd; border-radius: 20px; box-shadow: 0 6px 25px rgba(250,225,221,.4); }

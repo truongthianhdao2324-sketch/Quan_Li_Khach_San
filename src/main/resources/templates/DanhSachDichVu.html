@@ -19,7 +19,7 @@
       <thead><tr><th>Mã</th><th>Dịch vụ</th><th class="text-end">Đơn giá</th><th th:if="${dichVuAdmin}">Thao tác</th></tr></thead>
       <tbody><tr th:each="item : ${page.content}">
         <td th:text="'DV' + ${item.maDichVu}"></td><td class="fw-semibold" th:text="${item.tenDichVu}"></td>
-        <td class="text-end money" th:text="${@tienViet.format(item.giaDichVu)}"></td>
+        <td class="text-end money" th:text="${@tienViet.dinhDang(item.giaDichVu)}"></td>
         <td th:if="${dichVuAdmin}"><div class="d-flex gap-2"><a class="btn btn-sm btn-outline-secondary" th:href="@{/dich-vu/{id}/sua(id=${item.maDichVu})}">Sửa</a>
           <form method="post" th:action="@{/dich-vu/{id}/xoa(id=${item.maDichVu})}" onsubmit="return confirm('Xóa dịch vụ này? Dịch vụ đã có lịch sử sẽ được bảo vệ và không thể xóa.');"><input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}"><button class="btn btn-sm btn-outline-danger">Xóa</button></form></div></td>
       </tr><tr th:if="${page.empty}"><td colspan="5" class="text-center text-secondary py-5">Không có dịch vụ phù hợp.</td></tr></tbody>

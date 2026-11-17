@@ -5,159 +5,142 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
-/** Independent Java program. Based on the Runnable-per-connection example in chapter 5. */
-public final class DichVuSocketServer implements AutoCloseable {
-    private final ServerSocket listener;
-    private final String token;
-    private final Set<Handler> connections = ConcurrentHashMap.newKeySet();
-    private final Set<Handler> subscribers = ConcurrentHashMap.newKeySet();
-    private final Semaphore capacity = new Semaphore(64);
-    private final AtomicInteger sequence = new AtomicInteger();
-    private final Object lifecycle = new Object();
-    private final int deliveryTimeoutMillis;
-    private volatile boolean running = true;
-    public DichVuSocketServer(String host, int port, String token) throws IOException {
-        this(host, port, token, 1500);
+/** Máy chủ thông báo nội bộ: mỗi kết nối có một luồng xử lý. */
+public class DichVuSocketServer implements AutoCloseable {
+    private final ServerSocket mayChu;
+    private final List<XuLyKetNoi> ketNoi = new ArrayList<>();
+    private final List<XuLyKetNoi> mayNhan = new ArrayList<>();
+    private volatile boolean dangChay = true;
+    private int soThuTu;
+
+    public DichVuSocketServer(String diaChi, int cong) throws IOException {
+        mayChu = new ServerSocket();
+        mayChu.setReuseAddress(true);
+        mayChu.bind(new InetSocketAddress(diaChi, cong));
     }
-    public DichVuSocketServer(String host, int port, String token, int deliveryTimeoutMillis) throws IOException {
-        if (token == null || token.isBlank()) throw new IllegalArgumentException("Token không được để trống.");
-        if (deliveryTimeoutMillis < 1) throw new IllegalArgumentException("Thời hạn gửi phải dương.");
-        this.token = token;
-        this.deliveryTimeoutMillis = deliveryTimeoutMillis;
-        listener = new ServerSocket(); listener.setReuseAddress(true);
-        listener.bind(new InetSocketAddress(host, port));
-    }
-    public int getPort() { return listener.getLocalPort(); }
-    public int getSubscriberCount() { return subscribers.size(); }
+    public int getPort() { return mayChu.getLocalPort(); }
+    public int getSubscriberCount() { synchronized (ketNoi) { return mayNhan.size(); } }
+
     public void serve() throws IOException {
-        log("Lắng nghe " + listener.getLocalSocketAddress());
-        while (running) {
+        System.out.println("Máy chủ dịch vụ đang nghe: " + mayChu.getLocalSocketAddress());
+        while (dangChay) {
             try {
-                Socket socket = listener.accept();
-                if (!capacity.tryAcquire()) { socket.close(); continue; }
-                Handler handler = new Handler(socket);
-                synchronized (lifecycle) {
-                    if (!running) { handler.close(); capacity.release(); break; }
-                    handler.worker = new Thread(handler, "dichvu-client-" + sequence.incrementAndGet());
-                    connections.add(handler);
-                    handler.worker.start();
+                Socket socket = mayChu.accept();
+                XuLyKetNoi xuLy = new XuLyKetNoi(socket);
+                synchronized (ketNoi) {
+                    if (!dangChay || ketNoi.size() >= 32) { socket.close(); continue; }
+                    ketNoi.add(xuLy);
+                    xuLy.luong = new Thread(xuLy, "dich-vu-" + ++soThuTu);
+                    xuLy.luong.start();
                 }
-            } catch (SocketException ex) { if (running) throw ex; }
-        }
-    }
-    private static void log(String message) { System.out.println(LocalDateTime.now() + " [" + Thread.currentThread().getName() + "] " + message); }
-    private final class Handler implements Runnable, AutoCloseable {
-        private final Socket socket;
-        private BufferedWriter writer;
-        private volatile SocketMessageWriter subscriberWriter;
-        private Thread worker;
-        private Handler(Socket socket) { this.socket = socket; }
-        private synchronized void send(String line) throws IOException {
-            writer.write(line); writer.newLine(); writer.flush();
-        }
-        private synchronized CompletableFuture<Void> enqueue(String line) throws IOException {
-            return subscriberWriter.offer(line);
-        }
-        @Override public void run() {
-            try (socket;
-                 Reader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
-                writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
-                socket.setSoTimeout(5000);
-                String line = ServiceProtocol.readLine(reader);
-                if (line == null) return;
-                String[] fields = line.split("\\|", -1);
-                if (fields.length < 2 || !ServiceProtocol.encode(token).equals(fields[1])) { send("ERROR|AUTH"); return; }
-                if ("SUB".equals(fields[0]) && fields.length == 3) {
-                    String name = ServiceProtocol.decode(fields[2]);
-                    if (name.isBlank() || name.length() > 80) { send("ERROR|NAME"); return; }
-                    synchronized (this) {
-                        subscriberWriter = new SocketMessageWriter(socket, writer, "dichvu-send-" + Thread.currentThread().getName());
-                        subscribers.add(this);
-                        send("READY");
-                    }
-                    socket.setSoTimeout(0);
-                    log("Đăng ký client " + name + "; đang kết nối=" + subscribers.size());
-                    while ((line = ServiceProtocol.readLine(reader)) != null) {
-                        if ("PING".equals(line)) enqueue("PONG");
-                        else {
-                            try { enqueue("ERROR|COMMAND").get(deliveryTimeoutMillis, TimeUnit.MILLISECONDS); }
-                            catch (ExecutionException | TimeoutException ignored) { }
-                            catch (InterruptedException ex) { Thread.currentThread().interrupt(); }
-                            break;
-                        }
-                    }
-                } else if ("EVENT".equals(fields[0]) && fields.length == 9) {
-                    long eventId = Long.parseLong(fields[2]); long stayId = Long.parseLong(fields[3]);
-                    int quantity = Integer.parseInt(fields[6]);
-                    if (eventId < 1 || stayId < 1 || quantity < 1 || quantity > 999) throw new IllegalArgumentException("Giá trị không hợp lệ");
-                    ServiceProtocol.decode(fields[4]); ServiceProtocol.decode(fields[5]); LocalDateTime.parse(fields[7]);
-                    if (fields[8].length() > 50) throw new IllegalArgumentException("Nguồn không hợp lệ");
-                    String payload = "SERVICE|" + String.join("|", java.util.Arrays.copyOfRange(fields, 2, 8));
-                    List<Delivery> deliveries = new ArrayList<>();
-                    long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(deliveryTimeoutMillis);
-                    // Enqueue to ALL subscribers before waiting. One stalled receiver cannot
-                    // prevent the other receivers from being offered this message.
-                    for (Handler receiver : subscribers) {
-                        try { deliveries.add(new Delivery(receiver, receiver.enqueue(payload))); }
-                        catch (IOException ex) { receiver.close(); }
-                    }
-                    int recipients = 0;
-                    for (Delivery delivery : deliveries) {
-                        try {
-                            delivery.completion().get(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
-                            recipients++;
-                        } catch (ExecutionException | TimeoutException ex) {
-                            delivery.receiver().close();
-                        } catch (InterruptedException ex) {
-                            Thread.currentThread().interrupt();
-                            return;
-                        }
-                    }
-                    send("ACK|" + eventId + "|" + recipients);
-                    log("Yêu cầu #" + eventId + " lượt ở #" + stayId + " -> " + recipients + " client");
-                } else send("ERROR|FORMAT");
-            } catch (IOException | IllegalArgumentException ex) {
-                log("Kết nối kết thúc: " + ex.getMessage());
-            } finally {
-                close();
-                subscribers.remove(this); connections.remove(this); capacity.release();
-                log("Đóng kết nối; client nhận còn=" + subscribers.size());
+            } catch (SocketException loi) {
+                if (dangChay) throw loi;
             }
         }
-        @Override public void close() {
-            subscribers.remove(this);
-            try { socket.close(); } catch (IOException ignored) { }
-            if (subscriberWriter != null) subscriberWriter.close();
+    }
+
+    // Giới hạn độ dài để không đọc mãi một thông điệp sai định dạng.
+    public static String docDong(Reader dauVao) throws IOException {
+        StringBuilder dong = new StringBuilder();
+        int kyTu;
+        while ((kyTu = dauVao.read()) != -1) {
+            if (kyTu == '\n') return dong.toString();
+            if (kyTu == '\r') {
+                if (dauVao.read() == '\n') return dong.toString();
+                throw new IOException("Dòng dữ liệu sai định dạng.");
+            }
+            if (dong.length() >= 4096) throw new IOException("Thông điệp quá dài.");
+            dong.append((char) kyTu);
         }
-        private void awaitStopped(long deadline) throws InterruptedException {
-            long left = TimeUnit.NANOSECONDS.toMillis(Math.max(0, deadline - System.nanoTime()));
-            if (worker != null && Thread.currentThread() != worker && left > 0) worker.join(left);
-            left = TimeUnit.NANOSECONDS.toMillis(Math.max(0, deadline - System.nanoTime()));
-            if (subscriberWriter != null) subscriberWriter.awaitStopped(left);
+        return dong.isEmpty() ? null : dong.toString();
+    }
+
+    private class XuLyKetNoi implements Runnable {
+        final Socket socket;
+        BufferedWriter dauRa;
+        Thread luong;
+        XuLyKetNoi(Socket socket) { this.socket = socket; }
+
+        synchronized void gui(String dong) throws IOException {
+            dauRa.write(dong);
+            dauRa.newLine();
+            dauRa.flush();
+        }
+
+        @Override
+        public void run() {
+            try (socket;
+                 Reader dauVao = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
+                dauRa = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+                socket.setSoTimeout(5000);
+                String dong = docDong(dauVao);
+                if (dong == null) return;
+                String[] phan = dong.split("\\|", -1);
+                if (phan.length == 2 && phan[0].equals("NHAN") && !phan[1].isBlank() && phan[1].length() <= 60) {
+                    synchronized (ketNoi) {
+                        mayNhan.add(this);
+                        gui("SAN_SANG");
+                    }
+                    socket.setSoTimeout(0);
+                    System.out.println("[" + Thread.currentThread().getName() + "] Đã kết nối: " + phan[1]);
+                    while ((dong = docDong(dauVao)) != null) {
+                        if (dong.equals("KIEM_TRA")) gui("DANG_KET_NOI");
+                        else { gui("LOI|Lệnh không hợp lệ"); break; }
+                    }
+                } else if (phan.length == 7 && phan[0].equals("GUI")) {
+                    long id = Long.parseLong(phan[1]);
+                    long maLuotO = Long.parseLong(phan[2]);
+                    int soLuong = Integer.parseInt(phan[5]);
+                    LocalDateTime.parse(phan[6]);
+                    if (id <= 0 || maLuotO <= 0 || soLuong < 1 || soLuong > 999 || phan[3].isBlank() || phan[4].isBlank())
+                        throw new IllegalArgumentException("Thông tin dịch vụ không hợp lệ.");
+                    List<XuLyKetNoi> danhSach;
+                    synchronized (ketNoi) { danhSach = new ArrayList<>(mayNhan); }
+                    int daNhan = 0;
+                    String thongBao = "DICH_VU" + dong.substring(3);
+                    for (XuLyKetNoi nguoiNhan : danhSach) {
+                        try { nguoiNhan.gui(thongBao); daNhan++; }
+                        catch (IOException loi) { nguoiNhan.dong(); }
+                    }
+                    gui("DA_GUI|" + id + "|" + daNhan);
+                    System.out.println("[" + Thread.currentThread().getName() + "] Khoản #" + id + " gửi tới " + daNhan + " máy nhận.");
+                } else {
+                    gui("LOI|Lệnh không hợp lệ");
+                }
+            } catch (IOException | IllegalArgumentException | java.time.DateTimeException loi) {
+                if (dangChay) System.err.println("[" + Thread.currentThread().getName() + "] Ngắt kết nối: " + loi.getMessage());
+            } finally {
+                synchronized (ketNoi) { ketNoi.remove(this); mayNhan.remove(this); }
+                dong();
+            }
+        }
+        void dong() { try { socket.close(); } catch (IOException boQua) { } }
+    }
+
+    @Override
+    public void close() throws IOException {
+        dangChay = false;
+        mayChu.close();
+        List<XuLyKetNoi> danhSach;
+        synchronized (ketNoi) { danhSach = new ArrayList<>(ketNoi); }
+        for (XuLyKetNoi xuLy : danhSach) xuLy.dong();
+        for (XuLyKetNoi xuLy : danhSach) {
+            try { xuLy.luong.join(1000); }
+            catch (InterruptedException loi) { Thread.currentThread().interrupt(); break; }
         }
     }
-    private record Delivery(Handler receiver, CompletableFuture<Void> completion) { }
-    @Override public void close() throws IOException {
-        List<Handler> snapshot;
-        synchronized (lifecycle) {
-            running = false;
-            listener.close();
-            snapshot = new ArrayList<>(connections);
-        }
-        for (Handler handler : snapshot) handler.close();
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-        try { for (Handler handler : snapshot) handler.awaitStopped(deadline); }
-        catch (InterruptedException ex) { Thread.currentThread().interrupt(); }
-    }
-    public static void main(String[] args) throws Exception {
-        int port = args.length > 0 ? Integer.parseInt(args[0]) : 5000;
-        String host = args.length > 1 ? args[1] : "127.0.0.1";
-        try (DichVuSocketServer server = new DichVuSocketServer(host, port, ServiceProtocol.token())) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> { try { server.close(); } catch (IOException ignored) { } }, "dichvu-shutdown"));
-            server.serve();
+
+    public static void main(String[] args) {
+        int cong = args.length > 0 ? Integer.parseInt(args[0]) : 5000;
+        String diaChi = args.length > 1 ? args[1] : "127.0.0.1";
+        try (DichVuSocketServer mayChu = new DichVuSocketServer(diaChi, cong)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try { mayChu.close(); } catch (IOException boQua) { }
+            }));
+            mayChu.serve();
+        } catch (IOException | IllegalArgumentException loi) {
+            System.err.println("Không mở được máy chủ dịch vụ: " + loi.getMessage());
         }
     }
 }
