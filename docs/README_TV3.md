@@ -1,47 +1,75 @@
 # Phần dịch vụ — TV3
 
-## Chạy cùng database nhóm
+Chức năng: quản lý danh mục dịch vụ, gọi dịch vụ cho khách đang lưu trú, xem lịch sử và gửi thông báo đến bộ phận phục vụ qua TCP.
 
-1. Dùng `qlks.sql` và cấu hình MySQL của nhóm.
-2. Trước khi ghép, nhóm trưởng đối chiếu cột `su_dung_dich_vu.ma_dat_phong` với `dat_phong.ma_dat_phong`. Code TV3 và truy vấn tổng dịch vụ TV4 đều dùng cột này. Việc cập nhật SQL chung và dữ liệu cũ do nhóm trưởng xử lý; TV3 không kèm script sửa database.
-3. Mở dự án với JDK 17, chạy:
+## Chạy chương trình
+
+Dùng JDK 17, database MySQL `QLKS` và tài khoản kết nối của nhóm trong `src/main/resources/application.properties`. MySQL cần chạy trước khi mở web. Nếu máy khác dùng mật khẩu hoặc cổng khác thì chỉnh cấu hình kết nối trên máy đó.
 
 ```powershell
 ./mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--spring.jpa.hibernate.ddl-auto=none'
 ```
 
-Tham số `ddl-auto=none` giữ các bảng đã tạo từ SQL, tránh Hibernate tự đổi kiểu cột. Cấu hình kết nối MySQL gốc của nhóm giữ nguyên.
+`ddl-auto=none` giữ nguyên các bảng đã tạo từ SQL nhóm. Không kèm script tạo database khác. Bảng `su_dung_dich_vu` cần có cột `ma_dat_phong`, cùng cột mà TV4 dùng để cộng tiền dịch vụ.
 
-Đăng nhập `admin / 123456` để thêm, sửa và xóa dịch vụ chưa có lịch sử; `letan / 123456` để gọi dịch vụ. Các trang dịch vụ có menu sang khách hàng, phòng và hóa đơn, giữ nguyên phiên đăng nhập. Trang hóa đơn cần mã TV4 được ghép vào dự án.
+- `admin / 123456`: thêm, sửa, xóa dịch vụ chưa có lịch sử.
+- `letan / 123456`: gọi dịch vụ, xem lịch sử, gửi lại thông báo.
+- Menu bên trái chuyển sang các phần khác và giữ phiên đăng nhập. Các trang của thành viên khác cần có trong bản ghép chung.
 
-## Chạy server và ba client TCP
+## Chạy Socket
 
-Sau khi compile, mở mỗi lệnh ở một terminal riêng. `JAVA_HOME` trỏ tới JDK 17.
+Sau khi biên dịch, mở mỗi lệnh ở một cửa sổ riêng. `JAVA_HOME` trỏ đến JDK 17.
 
 ```powershell
-# Server
+./mvnw.cmd compile
+
 & "$env:JAVA_HOME/bin/java.exe" '-Dfile.encoding=UTF-8' -cp target/classes org.example.quan_li_khach_san.network.DichVuSocketServer 5000 127.0.0.1
 
-# Ba client
 & "$env:JAVA_HOME/bin/java.exe" '-Dfile.encoding=UTF-8' -cp target/classes org.example.quan_li_khach_san.network.DichVuSocketClient 127.0.0.1 5000 Phuc-vu-1
 & "$env:JAVA_HOME/bin/java.exe" '-Dfile.encoding=UTF-8' -cp target/classes org.example.quan_li_khach_san.network.DichVuSocketClient 127.0.0.1 5000 Phuc-vu-2
 & "$env:JAVA_HOME/bin/java.exe" '-Dfile.encoding=UTF-8' -cp target/classes org.example.quan_li_khach_san.network.DichVuSocketClient 127.0.0.1 5000 Kho-bep
 ```
 
-Lễ tân chọn khách đang ở, dịch vụ và số lượng. Thành tiền = đơn giá × số lượng, lưu vào `su_dung_dich_vu`, sau đó gửi thông báo tới client. Khi mất kết nối, khoản tiền vẫn được lưu và có thể gửi lại thông báo trong lịch sử.
+Gọi dịch vụ trên web để cả ba client nhận thông báo. Tắt server rồi gọi tiếp: khoản dịch vụ vẫn được lưu. Mở lại server và client, vào lịch sử để gửi lại thông báo; thao tác này không cộng thêm tiền.
 
-Mã chống bấm lặp và trạng thái gửi thông báo được nhớ trong bộ nhớ của web, tối đa 10.000 mục. Khi khởi động lại web, các trạng thái này mất; tiền và lịch sử vẫn nằm trong database. Kiểm tra lịch sử trước khi lập yêu cầu mới. Đơn giá lịch sử được tính từ thành tiền đã lưu chia số lượng; tên dịch vụ theo danh mục hiện tại.
+## Các file chính
 
-## Kiểm tra
+| Phần | File |
+| --- | --- |
+| Dữ liệu | `entity/DichVu.java`, `entity/SuDungDichVu.java` |
+| Truy vấn | `repository/DichVuRepository.java`, `repository/SuDungDichVuRepository.java` |
+| Xử lý dịch vụ | `service/DichVuService.java` |
+| Gửi thông báo từ web | `service/ThongBaoDichVuService.java` |
+| Điều khiển trang | `controller/DichVuController.java` |
+| Server và client chạy riêng | `network/DichVuSocketServer.java`, `network/DichVuSocketClient.java` |
+| Giao diện | Các trang dịch vụ trong `templates`, `fragments/dichvu.html`, `static/css/dichvu.css` |
+| Hiển thị tiền | `util/TienViet.java` |
 
-```powershell
-./mvnw.cmd test
+`TienViet` chỉ định dạng số tiền để hiển thị, không đổi cách tính tiền. Bootstrap được dùng tại `static/css/bootstrap.min.css`.
+
+Lịch sử lấy từ `su_dung_dich_vu`. Khoản có `ma_dat_phong` được lấy theo mã đó. Khoản cũ chưa có mã chỉ hiển thị khi khớp duy nhất khách, phòng và khoảng thời gian lưu trú; việc đọc này không cập nhật SQL. Thành tiền cũ giữ nguyên, đơn giá hiển thị bằng thành tiền chia số lượng, tên dịch vụ theo danh mục hiện tại.
+
+Mã chống bấm lặp được giữ tối đa 100 yêu cầu mỗi phiên; trạng thái gửi giữ tối đa 1.000 khoản trong bộ nhớ web. Khởi động lại sẽ mất trạng thái gửi, còn tiền và lịch sử vẫn ở database. Trước khi lập lại yêu cầu, kiểm tra lịch sử để tránh gọi trùng.
+
+## Khi ghép phần dịch vụ
+
+Chỉ giữ một `DatPhong` và một `DatPhongRepository`. TV3 dùng thông tin khách, số phòng, ngày nhận/trả và trạng thái lưu trú; repository cần giữ `findDangLuuTru` và `findLockedById`. Phần tính phòng/hóa đơn giữ theo mã của nhóm.
+
+## Cách gửi thông báo
+
+Web lưu khoản tiền xong mới gửi TCP. Server dùng `ServerSocket`; mỗi kết nối được xử lý bởi một `Thread`/`Runnable`. Các client chạy riêng bằng `Socket` và nhận cùng thông báo. Danh sách kết nối và thao tác ghi được đồng bộ bằng `synchronized`.
+
+Dữ liệu UTF-8, mỗi thông điệp một dòng, các trường cách nhau bằng `|`, tối đa 4.096 ký tự:
+
+```text
+NHAN|Phuc-vu-1
+GUI|id|maDatPhong|soPhong|tenDichVu|soLuong|thoiDiem
+DICH_VU|id|maDatPhong|soPhong|tenDichVu|soLuong|thoiDiem
+DA_GUI|id|soMayNhan
 ```
 
-Kiểm thử dùng H2 ở chế độ MySQL với bảng lấy từ SQL gốc cộng cột `ma_dat_phong`, không dùng database nhóm. Kết quả sau khi chạy nằm trong `target/surefire-reports`.
+Client đăng ký bằng `NHAN`, nhận `SAN_SANG`. Web gửi `GUI`; server chuyển thành `DICH_VU` cho các client và trả `DA_GUI` về web. Thời điểm có dạng `2026-11-17T09:30:00`. Lệnh sai bị từ chối, kết nối lỗi bị đóng.
 
-Ngày 15/11/2026: 28 kiểm thử TV3 đạt; bản ghép thử với mã TV2/TV4 đạt 29 kiểm thử. Bản ghép đọc đúng tiền dịch vụ bằng truy vấn gốc của TV4, giữ nguyên kiểu tiền của các bạn. Các kết quả này dùng H2, chưa phải chạy trên MySQL thật của nhóm.
+Server nhận tối đa 32 kết nối. Chạy trong mạng nội bộ tin cậy; mặc định cùng máy tại `127.0.0.1:5000`. Nếu chạy khác máy, đổi địa chỉ server trong web/client và cho phép cổng qua tường lửa.
 
-Có thể xem giao diện bằng dữ liệu tạm qua `PreviewApplication` trong `src/test`; dữ liệu này mất khi dừng và không thay thế việc chạy thử với MySQL của nhóm.
-
-[Ghi chú ghép code](BAN_GIAO_TICH_HOP.md) · [Giao thức TCP](GIAO_THUC_TCP.md)
+`DA_GUI` xác nhận ghi đến kết nối, chưa xác nhận đã phục vụ. Client nhớ tối đa 1.000 ID để bỏ qua thông báo trùng trong lần chạy hiện tại. Server không lưu thông báo khi tắt. Client đọc quá chậm có thể làm lần phát chờ lâu; web chờ phản hồi tối đa 3 giây và vẫn giữ khoản tiền đã lưu.
