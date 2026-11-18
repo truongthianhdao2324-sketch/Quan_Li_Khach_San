@@ -258,7 +258,8 @@
         .room-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            gap: 8px;
             margin-bottom: 10px;
         }
 
@@ -266,6 +267,9 @@
             font-size: 20px;
             font-weight: 700;
             color: #593945;
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .room-type {
@@ -275,6 +279,8 @@
             padding: 4px 10px;
             border-radius: 8px;
             font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .room-price {
@@ -621,7 +627,6 @@
 
 
     <div class="card-container">
-
         <!-- THANH CÔNG CỤ -->
         <div class="top-bar">
 
@@ -712,7 +717,7 @@
 
         <!-- DANH SÁCH PHÒNG DẠNG CARD -->
         <div class="room-grid">
-            <!--                Card phòng-->
+            <!--Card phòng-->
             <div class="room-card"
                  th:each="p : ${danhSachPhong}">
 
