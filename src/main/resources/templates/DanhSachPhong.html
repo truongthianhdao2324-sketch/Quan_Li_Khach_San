@@ -247,7 +247,50 @@
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            min-height: 323px;
+            box-sizing: border-box;
+        }
+
+        /* KHU VỰC TÊN PHÒNG VÀ GIÁ */
+        .room-card > div:first-child {
+            min-height: 105px;
+        }
+
+        /* KHU VỰC TRẠNG THÁI VÀ NÚT */
+        .room-card > div:nth-child(2) {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* VỊ TRÍ BADGE */
+        .room-status {
+            margin-top: 16px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* KHU VỰC NÚT CẬP NHẬT TRẠNG THÁI */
+        .room-status-actions {
+            margin-top: 15px;
+            min-height: 43px;
+            flex-shrink: 0;
+        }
+
+        /* NÚT CẬP NHẬT TRẠNG THÁI */
+        .room-status-actions form {
+            width: 100%;
+        }
+
+        /* KHU VỰC NÚT SỬA XÓA */
+        .room-admin-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 10px;
         }
 
         .room-card:hover {
@@ -301,28 +344,6 @@
             background-color: #fff8e1; color: #f57f17; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; border: 1px solid #ffe0b2; display: inline-block;
         }
 
-        /* --- NÚT BẤM ĐỔI TRẠNG THÁI NHANH --- */
-        .btn-status-change {
-            display: block;
-            text-align: center;
-            background-color: #fff0f3;
-            color: #ff758c;
-            text-decoration: none;
-            padding: 8px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            margin-top: 15px;
-            border: 1px solid #fae1dd;
-            transition: all 0.2s;
-        }
-
-        .btn-status-change:hover {
-            background-color: #ff758c;
-            color: white;
-            box-shadow: 0 3px 10px rgba(255, 117, 140, 0.3);
-        }
-
         .no-data {
             grid-column: 1 / -1;
             text-align: center;
@@ -330,7 +351,6 @@
             padding: 40px;
             font-style: italic;
         }
-
 
         /* THỐNG KÊ PHÒNG */
         .room-statistics {
@@ -530,6 +550,204 @@
             line-height: normal;
         }
 
+
+        /* --- TRẠNG THÁI BẢO TRÌ --- */
+        .badge-bao-tri {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            border: 1px solid #bbdefb;
+            display: inline-block;
+        }
+
+        /* --- NÚT THAO TÁC PHÒNG --- */
+        .btn-bao-tri,
+        .btn-hoan-tat-don,
+        .btn-hoan-tat-bao-tri {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-bao-tri {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+
+        .btn-bao-tri:hover {
+            background: #1565c0;
+            color: white;
+        }
+
+        .btn-hoan-tat-don {
+            background: #fff8e1;
+            color: #f57f17;
+            border: 1px solid #ffe0b2;
+        }
+
+        .btn-hoan-tat-don:hover {
+            background: #f57f17;
+            color: white;
+        }
+
+        .btn-hoan-tat-bao-tri {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .btn-hoan-tat-bao-tri:hover {
+            background: #2e7d32;
+            color: white;
+        }
+
+        /* --- THỐNG KÊ 4 TRẠNG THÁI --- */
+        .status-dot.maintenance {
+            background-color: #1565c0;
+        }
+
+        .stat-detail-item strong.count-maintenance {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        /* --- LỊCH SỬ XỬ LÝ PHÒNG --- */
+        .room-log-card {
+            background: white;
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 15px;
+            border: 1px solid #fae1dd;
+        }
+
+        .room-log-card h2 {
+            font-size: 18px;
+            color: #593945;
+            margin-bottom: 15px;
+        }
+
+        .room-log-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .room-log-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .room-log-table th,
+        .room-log-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #fae1dd;
+            font-size: 13px;
+        }
+
+        .room-log-table th {
+            background: #fff0f3;
+            color: #593945;
+        }
+
+        .room-log-table td {
+            color: #6b4c58;
+        }
+
+        /* --- NHẬT KÝ HOẠT ĐỘNG --- */
+        .room-log {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #f5dfe4;
+            border-radius: 15px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .room-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .room-log-header h3 {
+            margin: 0;
+            color: #593945;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .room-log-header span {
+            color: #9b8490;
+            font-size: 12px;
+        }
+
+        .room-log-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+
+        /* THỐNG KÊ THEO TRẠNG THÁI */
+
+        .stat-status-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stat-status-list .stat-detail-item {
+            padding: 15px;
+        }
+
+        /* DẤU CHẤM TRẠNG THÁI */
+        .status-dot.maintenance {
+            background-color: #1565c0;
+        }
+
+        /* SỐ LƯỢNG TRẠNG THÁI */
+        .stat-detail-item strong.count-maintenance {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
+        /* THỐNG KÊ THEO LOẠI - BỎ MÀU NỀN SỐ */
+        .stat-type-list .stat-detail-item strong {
+            background: transparent !important;
+            color: #e05278;
+        }
+
+
+
+        /* KHU VỰC TRẠNG THÁI PHÒNG */
+        .room-status {
+            margin-top: 16px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* BADGE TRẠNG THÁI */
+        .badge-trong,
+        .badge-co-khach,
+        .badge-don-phong,
+        .badge-bao-tri {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+
     </style>
 </head>
 <body>
@@ -583,27 +801,26 @@
                 Phòng theo trạng thái
             </h3>
 
-            <div class="stat-detail-list">
-                <div class="stat-detail-item"
-                     th:each="row : ${thongKeTrangThai}">
-
+            <div class="stat-detail-list stat-status-list">
+                <div class="stat-detail-item" th:each="row : ${thongKeTrangThai}">
                     <div class="stat-status-name">
-                    <span class="status-dot"
-                          th:classappend="${row[0] == 'Đã có khách'} ? ' occupied' :
-                                          (${row[0] == 'Còn trống'} ? ' available' : ' cleaning')">
-                    </span>
-
-                        <span th:text="${row[0]}">Trạng thái</span>
+                <span class="status-dot"
+                      th:classappend="${row[0] == 'Còn trống'} ? ' available' :
+                                      (${row[0] == 'Đã có khách'} ? ' occupied' :
+                                      (${row[0] == 'Đang dọn phòng'} ? ' cleaning' : ' maintenance'))">
+                </span>
+                        <span th:text="${row[0]}"></span>
                     </div>
 
                     <strong th:text="${row[1]}"
                             th:classappend="${row[0] == 'Còn trống'} ? ' count-available' :
-                        (${row[0] == 'Đã có khách'} ? ' count-occupied' : ' count-cleaning')">
-                        0
+                                    (${row[0] == 'Đã có khách'} ? ' count-occupied' :
+                                    (${row[0] == 'Đang dọn phòng'} ? ' count-cleaning' : ' count-maintenance'))">
                     </strong>
                 </div>
             </div>
         </div>
+
 
         <!-- THỐNG KÊ THEO LOẠI PHÒNG -->
         <div class="stat-detail-card">
@@ -678,8 +895,6 @@
                     Còn trống
                 </option>
 
-
-
                 <option value="Đang dọn phòng"
                         th:selected="${trangThaiChon == 'Đang dọn phòng'}">
                     Đang dọn phòng
@@ -690,6 +905,25 @@
                     Đã có khách
                 </option>
 
+                <option value="Bảo trì"
+                        th:selected="${trangThaiChon == 'Bảo trì'}">
+                    Bảo trì
+                </option>
+
+            </select>
+
+            <select name="sapXep"
+                    style="padding: 10px; border: 1px solid #fae1dd;
+               border-radius: 10px;">
+                <option value="tangDan"
+                        th:selected="${sapXep == 'tangDan'}">
+                    Số phòng tăng dần
+                </option>
+
+                <option value="giamDan"
+                        th:selected="${sapXep == 'giamDan'}">
+                    Số phòng giảm dần
+                </option>
             </select>
 
             <button type="submit" class="btn-search">
@@ -700,6 +934,7 @@
                class="filter-btn">
                 🔄 Làm mới
             </a>
+
 
         </form>
 
@@ -744,67 +979,87 @@
                 <div>
 
                     <!-- TRẠNG THÁI -->
-                    <div style="margin-top: 5px;">
 
+                    <!-- TRẠNG THÁI PHÒNG -->
+                    <div class="room-status">
                         <span th:if="${p.trangThai == 'Còn trống'}"
                               class="badge-trong">
                             ● Còn trống
                         </span>
 
+                        <span th:if="${p.trangThai == 'Đã có khách'}"
+                                                  class="badge-co-khach">
+                            ● Đã có khách
+                        </span>
+
                         <span th:if="${p.trangThai == 'Đang dọn phòng'}"
-                              class="badge-don-phong">
+                                                  class="badge-don-phong">
                             ● Đang dọn phòng
                         </span>
 
-                        <span th:if="${p.trangThai == 'Đã có khách'}"
-                                  class="badge-co-khach">
-                            ● Đã có khách
+                        <span th:if="${p.trangThai == 'Bảo trì'}"
+                                                  class="badge-bao-tri">
+                            ● Bảo trì
                         </span>
 
                     </div>
 
-                    <!-- LỄ TÂN VÀ ADMIN ĐƯỢC ĐỔI TRẠNG THÁI -->
-                    <form th:action="@{/khachhang/phong/doi-trang-thai}"
-                          method="post"
-                          style="margin-top: 15px;">
+                    <!-- NÚT THAO TÁC THEO TRẠNG THÁI -->
+                    <div th:if="${session.user.vaiTro == 'ADMIN'
+                                  or session.user.vaiTro == 'RECEPTIONIST'
+                                  or session.user.vaiTro == 'letan'}"
+                         class="room-status-actions">
 
-                        <input type="hidden"
-                               name="soPhong"
-                               th:value="${p.soPhong}">
+                        <!-- Phòng còn trống -->
+                        <form th:if="${p.trangThai == 'Còn trống'}"
+                              th:action="@{/khachhang/phong/thao-tac}"
+                              method="post"
+                              onsubmit="return confirm('Bạn có chắc muốn đưa phòng này vào bảo trì?')">
 
-                        <select name="trangThai"
-                                style="width: 100%; padding: 8px;
-                                   border: 1px solid #fae1dd;
-                                   border-radius: 10px;">
+                            <input type="hidden" name="soPhong" th:value="${p.soPhong}">
+                            <input type="hidden" name="thaoTac" value="BAO_TRI">
 
-                            <option value="Còn trống"
-                                    th:selected="${p.trangThai == 'Còn trống'}">
-                                Còn trống
-                            </option>
+                            <button type="submit" class="btn-bao-tri">
+                                🔧 Bảo trì
+                            </button>
+                        </form>
 
-                            <option value="Đã có khách"
-                                    th:selected="${p.trangThai == 'Đã có khách'}">
-                                Đã có khách
-                            </option>
+                        <!-- Phòng đang có khách: không hiển thị nút -->
 
-                            <option value="Đang dọn phòng"
-                                    th:selected="${p.trangThai == 'Đang dọn phòng'}">
-                                Đang dọn phòng
-                            </option>
+                        <!-- Phòng đang dọn -->
+                        <form th:if="${p.trangThai == 'Đang dọn phòng'}"
+                              th:action="@{/khachhang/phong/thao-tac}"
+                              method="post"
+                              onsubmit="return confirm('Xác nhận phòng đã được dọn xong?')">
 
-                        </select>
+                            <input type="hidden" name="soPhong" th:value="${p.soPhong}">
+                            <input type="hidden" name="thaoTac" value="HOAN_TAT_DON">
 
-                        <button type="submit"
-                                class="btn-status-change"
-                                style="width: 100%; cursor: pointer;">
-                            Cập nhật trạng thái
-                        </button>
+                            <button type="submit" class="btn-hoan-tat-don">
+                                🧹 Hoàn tất dọn phòng
+                            </button>
+                        </form>
 
-                    </form>
+                        <!-- Phòng đang bảo trì -->
+                        <form th:if="${p.trangThai == 'Bảo trì'}"
+                              th:action="@{/khachhang/phong/thao-tac}"
+                              method="post"
+                              onsubmit="return confirm('Xác nhận phòng đã bảo trì xong?')">
+
+                            <input type="hidden" name="soPhong" th:value="${p.soPhong}">
+                            <input type="hidden" name="thaoTac" value="HOAN_TAT_BAO_TRI">
+
+                            <button type="submit" class="btn-hoan-tat-bao-tri">
+                                ✅ Hoàn tất bảo trì
+                            </button>
+                        </form>
+
+                    </div>
+
 
                     <!-- CHỈ ADMIN CÓ NÚT SỬA VÀ XÓA -->
                     <div th:if="${laAdmin}"
-                         style="display: flex; gap: 8px; margin-top: 10px;">
+                         class="room-admin-actions">
 
                         <!-- Nút sửa -->
                         <a th:href="@{/khachhang/phong/sua/{soPhong}(soPhong=${p.soPhong})}"
@@ -839,16 +1094,59 @@
             </div>
 
         </div>
-    </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+    <!-- NHẬT KÝ HOẠT ĐỘNG -->
+    <div class="room-log">
+        <div class="room-log-header">
+            <h3>🕒 NHẬT KÝ HOẠT ĐỘNG</h3>
+            <span>Ghi nhận thay đổi trạng thái phòng</span>
         </div>
 
+        <div class="room-log-content">
+            <table class="room-log-table">
+
+                <thead>
+                <tr>
+                    <th>Nội dung nhật ký</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:if="${#lists.isEmpty(nhatKyPhong)}">
+                    <td>Chưa có lịch sử xử lý phòng.</td>
+                </tr>
+
+                <tr th:each="log : ${nhatKyPhong}">
+                    <td th:text="${log}"></td>
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
     </div>
 
-
 </div>
-
-
 
 <script>
     setTimeout(function () {

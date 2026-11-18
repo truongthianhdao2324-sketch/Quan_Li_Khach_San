@@ -146,7 +146,7 @@
             <div class="form-group">
                 <label>Số Phòng</label>
                 <input type="text" th:field="*{soPhong}"
-                       placeholder="Nhập số phòng..." maxlength="20"
+                       placeholder="Nhập số phòng (Tối đa 20 ký tự)" maxlength="20"
                        required>
                 <div class="error" th:if="${#fields.hasErrors('soPhong')}"
                      th:errors="*{soPhong}"></div>

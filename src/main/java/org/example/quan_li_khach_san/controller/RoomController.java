@@ -1,5 +1,6 @@
 package org.example.quan_li_khach_san.controller;
 
+import org.example.quan_li_khach_san.service.RoomLogService;
 import org.example.quan_li_khach_san.entity.Room;
 import org.example.quan_li_khach_san.repository.RoomRepository;
 import org.example.quan_li_khach_san.service.RoomService;
@@ -26,16 +27,9 @@ import java.util.List;
 @RequestMapping("/khachhang")
 public class RoomController {
 
+    private final RoomLogService roomLogService;
     private final RoomRepository roomRepository;
     private final RoomService roomService;
-
-//    private final List<String> danhSachLoaiPhong = Arrays.asList(
-//            "Tiêu chuẩn", "Cao cấp", "Sang trọng", "VIP"
-//    );
-//
-//    private final List<String> danhSachTrangThai = Arrays.asList(
-//            "Còn trống", "Đã có khách", "Đang dọn phòng"
-//    );
 
     private final List<String> danhSachTrangThai = List.of(
             "Còn trống",
@@ -52,9 +46,12 @@ public class RoomController {
     }
 
 
-    public RoomController(RoomRepository roomRepository, RoomService roomService) {
+    public RoomController(RoomRepository roomRepository,
+                          RoomService roomService,
+                          RoomLogService roomLogService) {
         this.roomRepository = roomRepository;
         this.roomService = roomService;
+        this.roomLogService = roomLogService;
     }
 
     // Hiển thị danh sách, tìm kiếm và lọc phòng
@@ -63,6 +60,7 @@ public class RoomController {
             @RequestParam(required = false) String soPhong,
             @RequestParam(required = false) String loaiPhong,
             @RequestParam(required = false) String trangThai,
+            @RequestParam(defaultValue = "tangDan") String sapXep,
             HttpSession session,
             Model model) {
 
@@ -93,17 +91,27 @@ public class RoomController {
         trangThai = (trangThai == null || trangThai.isEmpty())
                 ? null : trangThai;
 
+        sapXep = "giamDan".equals(sapXep) ? "giamDan" : "tangDan";
+
         List<Room> danhSachPhong =
-                roomRepository.timKiemVaLoc(soPhong, loaiPhong, trangThai);
+                roomRepository.timKiemVaLoc(
+                        soPhong, loaiPhong, trangThai, sapXep);
 
         model.addAttribute("danhSachPhong", danhSachPhong);
         model.addAttribute("danhSachLoaiPhong", roomRepository.findAllLoaiPhong());
+        model.addAttribute("soPhongTim", soPhong);
+        model.addAttribute("loaiPhongChon", loaiPhong);
+        model.addAttribute("trangThaiChon", trangThai);
+        model.addAttribute("sapXep", sapXep);
 
         // Thống kê phòng
         model.addAttribute("tongSoPhong", roomRepository.count());
 
         model.addAttribute("thongKeTrangThai",
-                roomRepository.thongKeTheoTrangThai());
+                roomService.thongKeTrangThaiDayDu());
+
+        model.addAttribute("nhatKyPhong",
+                roomLogService.docLog());
 
         model.addAttribute("thongKeLoaiPhong",
                 roomRepository.thongKeTheoLoaiPhong());
@@ -117,11 +125,13 @@ public class RoomController {
     }
 
     // Lễ tân và Admin cập nhật trạng thái phòng
-    @PostMapping("/phong/doi-trang-thai")
-    public String doiTrangThai(
+//    @PostMapping("/phong/doi-trang-thai")
+    @PostMapping("/phong/thao-tac")
+    public String thaoTacPhong(
             @RequestParam String soPhong,
-            @RequestParam String trangThai,
-            HttpSession session) {
+            @RequestParam String thaoTac,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
         TaiKhoan user = (TaiKhoan) session.getAttribute("user");
 
@@ -139,17 +149,24 @@ public class RoomController {
             return "redirect:/dang-nhap";
         }
 
-        if (!List.of("Còn trống", "Đã có khách", "Đang dọn phòng")
-                .contains(trangThai)) {
+        if (!List.of("BAO_TRI", "HOAN_TAT_DON",
+                "HOAN_TAT_BAO_TRI").contains(thaoTac)) {
+
+            redirectAttributes.addFlashAttribute(
+                    "loi", "Thao tác không hợp lệ!");
+
             return "redirect:/khachhang/phong";
         }
 
-        String ketQua = roomService.doiTrangThai(soPhong, trangThai);
+        String ketQua = roomService.thucHienThaoTac(soPhong, thaoTac);
 
-        return "redirect:/khachhang/phong?thongBao=" +
-                java.net.URLEncoder.encode(
-                        ketQua,
-                        java.nio.charset.StandardCharsets.UTF_8);
+        if (ketQua.contains("thành công")) {
+            redirectAttributes.addFlashAttribute("thongBao", ketQua);
+        } else {
+            redirectAttributes.addFlashAttribute("loi", ketQua);
+        }
+
+        return "redirect:/khachhang/phong";
     }
 
 
