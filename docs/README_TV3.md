@@ -73,3 +73,17 @@ Client đăng ký bằng `NHAN`, nhận `SAN_SANG`. Web gửi `GUI`; server chuy
 Server nhận tối đa 32 kết nối. Chạy trong mạng nội bộ tin cậy; mặc định cùng máy tại `127.0.0.1:5000`. Nếu chạy khác máy, đổi địa chỉ server trong web/client và cho phép cổng qua tường lửa.
 
 `DA_GUI` xác nhận ghi đến kết nối, chưa xác nhận đã phục vụ. Client nhớ tối đa 1.000 ID để bỏ qua thông báo trùng trong lần chạy hiện tại. Server không lưu thông báo khi tắt. Client đọc quá chậm có thể làm lần phát chờ lâu; web chờ phản hồi tối đa 3 giây và vẫn giữ khoản tiền đã lưu.
+
+
+## Ghi nhận sự cố và khoản bồi thường
+
+Khoản bồi thường dùng đơn giá trong danh mục, do admin quy định. Ví dụ “Bồi thường vỡ bình hoa”; không tự tạo sẵn mức tiền mẫu trong database nhóm.
+
+1. Admin thêm tên khoản và đơn giá trong Danh mục dịch vụ.
+2. Lễ tân mở Ghi nhận dịch vụ / bồi thường, chọn đúng lượt ở và khoản đã quy định.
+3. Nhập số lượng đồ bị hỏng, kiểm tra lựa chọn rồi xác nhận.
+4. Hệ thống tính đơn giá × số lượng, lưu vào `su_dung_dich_vu` cùng `ma_dat_phong`. Khoản này xuất hiện trong lịch sử và được truy vấn tính tiền của TV4 cộng vào hóa đơn.
+
+Giá gửi thêm từ trình duyệt không thay thế đơn giá danh mục. Bấm lặp cùng yêu cầu chỉ lưu một khoản; lượt đã trả phòng không được ghi thêm. Gửi lại thông báo không cộng thêm tiền. Thay đổi giá danh mục giữ nguyên khoản đã ghi.
+
+Use case **Ghi nhận sự cố/bồi thường**: tác nhân chính là lễ tân; xảy ra khi khách đang lưu trú có hư hỏng cần bồi thường. Điều kiện: đã có lượt ở hợp lệ và khoản bồi thường được admin định giá. Kết quả: lưu khoản tiền theo lượt ở để thanh toán. Nhánh thay thế: chưa có khoản phù hợp thì admin bổ sung; nhập sai số lượng thì sửa lại; mất kết nối thông báo thì giữ khoản đã lưu và cho gửi lại. Đây là phần ghi nhận khoản tiền theo sự cố, chưa phải phân hệ theo dõi sửa chữa hoặc xử lý hoàn tất sự cố.

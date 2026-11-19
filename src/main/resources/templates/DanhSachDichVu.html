@@ -3,13 +3,14 @@
 <header th:replace="~{fragments/dichvu :: nav}"></header>
 <main class="container py-4">
   <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
-    <div><h1>Danh mục dịch vụ</h1><p class="text-secondary mb-0">Danh sách dịch vụ và đơn giá của khách sạn.</p></div>
-    <a th:if="${dichVuAdmin}" th:href="@{/dich-vu/them}" class="btn btn-rose">+ Thêm dịch vụ</a>
+    <div><h1>Danh mục dịch vụ</h1><p class="text-secondary mb-0">Danh mục dịch vụ, các khoản bồi thường và đơn giá của khách sạn.</p></div>
+    <a th:if="${dichVuAdmin}" th:href="@{/dich-vu/them}" class="btn btn-rose">+ Thêm dịch vụ / khoản bồi thường</a>
+    <a th:if="${dichVuLeTan}" th:href="@{/dich-vu/goi}" class="btn btn-rose">+ Ghi nhận dịch vụ / bồi thường</a>
   </div>
   <div th:replace="~{fragments/dichvu :: alerts}"></div>
   <section class="card"><div class="card-body p-4">
     <form method="get" th:action="@{/dich-vu}" class="row g-2 mb-4">
-      <div class="col-md-5"><label for="q" class="form-label">Tên dịch vụ</label><input id="q" name="q" th:value="${q}" class="form-control" placeholder="Tìm nước uống, giặt ủi…"></div>
+      <div class="col-md-5"><label for="q" class="form-label">Tên dịch vụ / khoản bồi thường</label><input id="q" name="q" th:value="${q}" class="form-control" placeholder="Tìm dịch vụ, khoản bồi thường…"></div>
       <div class="col-6 col-md-3"><label for="sort" class="form-label">Sắp xếp theo</label><select id="sort" name="sort" class="form-select"><option value="tenDichVu" th:selected="${sort == 'tenDichVu'}">Tên dịch vụ</option><option value="giaDichVu" th:selected="${sort == 'giaDichVu'}">Đơn giá</option><option value="maDichVu" th:selected="${sort == 'maDichVu'}">Mã dịch vụ</option></select></div>
       <div class="col-6 col-md-2"><label for="dir" class="form-label">Thứ tự</label><select id="dir" name="dir" class="form-select"><option value="asc" th:selected="${dir != 'desc'}">Tăng dần</option><option value="desc" th:selected="${dir == 'desc'}">Giảm dần</option></select></div>
       <div class="col-md-2 d-flex align-items-end"><button class="btn btn-rose w-100">Tìm kiếm</button></div>
