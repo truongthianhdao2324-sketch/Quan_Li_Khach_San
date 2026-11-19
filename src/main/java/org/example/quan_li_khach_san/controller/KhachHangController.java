@@ -106,16 +106,16 @@ public class KhachHangController {
         return "redirect:/khachhang/danhsach";
     }
 
-    // --- QUẢN LÝ PHÒNG ---
-
-    @GetMapping("/khachhang/phong")
-    public String hienThiDanhSachPhong(HttpSession session, Model model) {
-        TaiKhoan user = (TaiKhoan) session.getAttribute("user");
-        if (user == null) return "redirect:/dang-nhap";
-
-        model.addAttribute("danhSachPhong", roomRepository.findAll());
-        return "DanhSachPhong";
-    }
+//    // --- QUẢN LÝ PHÒNG ---
+//
+//    @GetMapping("/khachhang/phong")
+//    public String hienThiDanhSachPhong(HttpSession session, Model model) {
+//        TaiKhoan user = (TaiKhoan) session.getAttribute("user");
+//        if (user == null) return "redirect:/dang-nhap";
+//
+//        model.addAttribute("danhSachPhong", roomRepository.findAll());
+//        return "DanhSachPhong";
+//    }
 
     @GetMapping("/khachhang/phong/form-them")
     public String hienThiFormThemPhong(HttpSession session, Model model) {
