@@ -155,8 +155,16 @@
 
             <div class="form-group">
                 <label>Giá Phòng (VNĐ)</label>
-                <input type="number" th:field="*{giaPhong}"
-                       min="1" step="0.01" required>
+
+                <input type="hidden" th:field="*{giaPhong}" id="giaPhong">
+
+                <input type="text"
+                       id="giaPhongHienThi"
+                       inputmode="numeric"
+                       placeholder="Nhập giá phòng (Tối thiểu 100,000 VNĐ)"
+                       autocomplete="off"
+                       required>
+
                 <div class="error" th:if="${#fields.hasErrors('giaPhong')}"
                      th:errors="*{giaPhong}"></div>
             </div>
@@ -181,6 +189,47 @@
         </form>
     </div>
 </div>
+
+<script>
+    const giaPhong = document.getElementById("giaPhong");
+    const giaPhongHienThi = document.getElementById("giaPhongHienThi");
+
+    function dinhDangGia(value) {
+        let so = value.replace(/\D/g, "");
+
+        if (so === "") {
+            return "";
+        }
+
+        return Number(so).toLocaleString("en-US");
+    }
+
+    // Hiển thị giá ban đầu
+    if (giaPhong.value && Number(giaPhong.value) > 0) {
+        giaPhongHienThi.value = dinhDangGia(giaPhong.value);
+    }
+
+    // Tự động thêm dấu phẩy khi nhập
+    giaPhongHienThi.addEventListener("input", function () {
+        let giaTri = this.value.replace(/\D/g, "");
+
+        this.value = dinhDangGia(giaTri);
+        giaPhong.value = giaTri;
+    });
+
+    // Không cho gửi form nếu giá chưa hợp lệ
+    giaPhongHienThi.addEventListener("input", function () {
+        giaPhongHienThi.setCustomValidity(
+            giaPhong.value !== "" && Number(giaPhong.value) >= 100000
+                ? ""
+                : "Giá phòng phải ít nhất là 100.000 VNĐ"
+        );
+    });
+
+    giaPhongHienThi.addEventListener("invalid", function () {
+        this.setCustomValidity("Giá phòng phải ít nhất là 100.000 VNĐ");
+    });
+</script>
 
 </body>
 </html>

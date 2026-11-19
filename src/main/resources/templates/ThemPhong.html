@@ -146,7 +146,7 @@
             <div class="form-group">
                 <label>Số Phòng</label>
                 <input type="text" th:field="*{soPhong}"
-                       placeholder="Nhập số phòng (Tối đa 20 ký tự)" maxlength="20"
+                       placeholder="Nhập số phòng (Tối đa 10 ký tự)"
                        required>
                 <div class="error" th:if="${#fields.hasErrors('soPhong')}"
                      th:errors="*{soPhong}"></div>
@@ -154,9 +154,16 @@
 
             <div class="form-group">
                 <label>Giá Phòng (VNĐ)</label>
-                <input type="number" th:field="*{giaPhong}"
-                       min="1" step="0.01" placeholder="Nhập giá phòng..."
+
+                <input type="hidden" th:field="*{giaPhong}" id="giaPhong">
+
+                <input type="text"
+                       id="giaPhongHienThi"
+                       inputmode="numeric"
+                       placeholder="Nhập giá phòng (Tối thiểu 100,000 VNĐ)"
+                       autocomplete="off"
                        required>
+
                 <div class="error" th:if="${#fields.hasErrors('giaPhong')}"
                      th:errors="*{giaPhong}"></div>
             </div>
@@ -173,17 +180,6 @@
                      th:errors="*{loaiPhong}"></div>
             </div>
 
-            <div class="form-group">
-                <label>Trạng Thái</label>
-                <select th:field="*{trangThai}" required>
-                    <option value="">-- Chọn trạng thái --</option>
-                    <option th:each="tt : ${danhSachTrangThai}"
-                            th:value="${tt}"
-                            th:text="${tt}"></option>
-                </select>
-                <div class="error" th:if="${#fields.hasErrors('trangThai')}"
-                     th:errors="*{trangThai}"></div>
-            </div>
 
             <div style="margin-top: 25px;">
                 <button type="submit" class="btn-submit">💾 Lưu Phòng</button>
@@ -194,5 +190,45 @@
     </div>
 </div>
 
+<script>
+    const giaPhong = document.getElementById("giaPhong");
+    const giaPhongHienThi = document.getElementById("giaPhongHienThi");
+
+    function dinhDangGia(value) {
+        let so = value.replace(/\D/g, "");
+
+        if (so === "") {
+            return "";
+        }
+
+        return Number(so).toLocaleString("en-US");
+    }
+
+    // Hiển thị giá ban đầu
+    if (giaPhong.value && Number(giaPhong.value) > 0) {
+        giaPhongHienThi.value = dinhDangGia(giaPhong.value);
+    }
+
+    // Tự động thêm dấu phẩy khi nhập
+    giaPhongHienThi.addEventListener("input", function () {
+        let giaTri = this.value.replace(/\D/g, "");
+
+        this.value = dinhDangGia(giaTri);
+        giaPhong.value = giaTri;
+    });
+
+    // Không cho gửi form nếu giá chưa hợp lệ
+    giaPhongHienThi.addEventListener("input", function () {
+        giaPhongHienThi.setCustomValidity(
+            giaPhong.value !== "" && Number(giaPhong.value) >= 100000
+                ? ""
+                : "Giá phòng phải ít nhất là 100.000 VNĐ"
+        );
+    });
+
+    giaPhongHienThi.addEventListener("invalid", function () {
+        this.setCustomValidity("Giá phòng phải ít nhất là 100.000 VNĐ");
+    });
+</script>
 </body>
 </html>

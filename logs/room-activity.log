@@ -42,3 +42,12 @@
 19/11/2026 00:24:16 | Luồng: http-nio-8080-exec-5 | Phòng: 105 | HOAN_TAT_BAO_TRI | Bảo trì -> Còn trống | Thành công
 19/11/2026 00:25:04 | Luồng: http-nio-8080-exec-4 | Phòng: 101 | BAO_TRI | Còn trống -> Bảo trì | Thành công
 19/11/2026 00:25:06 | Luồng: http-nio-8080-exec-3 | Phòng: 304 | HOAN_TAT_BAO_TRI | Bảo trì -> Còn trống | Thành công
+19/11/2026 09:16:37 | Luồng: http-nio-8080-exec-3 | Phòng: 304dsds | HOAN_TAT_DON | Đang dọn phòng -> Còn trống | Thành công
+19/11/2026 09:18:02 | Luồng: http-nio-8080-exec-8 | Phòng: 501 | BAO_TRI | Còn trống -> Bảo trì | Thành công
+19/11/2026 10:13:16 | Luồng: http-nio-8080-exec-8 | Phòng: 304dSS | HOAN_TAT_DON | Đang dọn phòng -> Còn trống | Thành công
+19/11/2026 10:13:23 | Luồng: http-nio-8080-exec-10 | Phòng: 309 | HOAN_TAT_DON | Đang dọn phòng -> Còn trống | Thành công
+19/11/2026 10:13:26 | Luồng: http-nio-8080-exec-4 | Phòng: 102 | HOAN_TAT_BAO_TRI | Bảo trì -> Còn trống | Thành công
+19/11/2026 10:13:29 | Luồng: http-nio-8080-exec-7 | Phòng: 30456 | HOAN_TAT_DON | Đang dọn phòng -> Còn trống | Thành công
+19/11/2026 10:13:37 | Luồng: http-nio-8080-exec-6 | Phòng: 501 | HOAN_TAT_BAO_TRI | Bảo trì -> Còn trống | Thành công
+19/11/2026 10:15:23 | Luồng: http-nio-8080-exec-5 | Phòng: 203 | BAO_TRI | Còn trống -> Bảo trì | Thành công
+19/11/2026 10:22:34 | Luồng: http-nio-8080-exec-1 | Phòng: 203 | HOAN_TAT_BAO_TRI | Bảo trì -> Còn trống | Thành công

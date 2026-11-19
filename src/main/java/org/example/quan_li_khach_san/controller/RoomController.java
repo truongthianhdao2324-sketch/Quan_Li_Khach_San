@@ -12,10 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -169,8 +165,6 @@ public class RoomController {
         return "redirect:/khachhang/phong";
     }
 
-
-
     // ================= THÊM PHÒNG =================
     @GetMapping("/phong/them")
     public String hienThiFormThem(HttpSession session, Model model) {
@@ -179,9 +173,11 @@ public class RoomController {
             return "redirect:/khachhang/phong";
         }
 
-        model.addAttribute("room", new Room());
+        Room room = new Room();
+        room.setTrangThai("Còn trống");
+
+        model.addAttribute("room", room);
         model.addAttribute("danhSachLoaiPhong", roomRepository.findAllLoaiPhong());
-        model.addAttribute("danhSachTrangThai", danhSachTrangThai);
 
         return "ThemPhong";
     }
@@ -198,6 +194,7 @@ public class RoomController {
             return "redirect:/khachhang/phong";
         }
 
+
         // Kiểm tra số phòng
         if (room.getSoPhong() == null || room.getSoPhong().trim().isEmpty()) {
             bindingResult.rejectValue("soPhong", "empty",
@@ -205,9 +202,9 @@ public class RoomController {
         } else {
             room.setSoPhong(room.getSoPhong().trim());
 
-            if (room.getSoPhong().length() > 20) {
+            if (room.getSoPhong().length() > 10) {
                 bindingResult.rejectValue("soPhong", "length",
-                        "Số phòng không được vượt quá 20 ký tự");
+                        "Số phòng không được vượt quá 10 ký tự");
             } else if (roomRepository.existsById(room.getSoPhong())) {
                 bindingResult.rejectValue("soPhong", "duplicate",
                         "Số phòng này đã tồn tại");
@@ -216,9 +213,9 @@ public class RoomController {
 
         // Kiểm tra giá phòng
         if (!bindingResult.hasFieldErrors("giaPhong")
-                && (!Double.isFinite(room.getGiaPhong()) || room.getGiaPhong() <= 0)) {
+                && (!Double.isFinite(room.getGiaPhong()) || room.getGiaPhong() < 100000)) {
             bindingResult.rejectValue("giaPhong", "invalid",
-                    "Giá phòng phải lớn hơn 0");
+                    "Giá phòng phải ít nhất là 100.000 VNĐ");
         }
 
         // Kiểm tra loại phòng
@@ -227,20 +224,19 @@ public class RoomController {
             bindingResult.rejectValue("loaiPhong", "invalid",
                     "Vui lòng chọn loại phòng hợp lệ");
         }
+        room.setTrangThai("Còn trống");
 
         // Kiểm tra trạng thái
-        if (room.getTrangThai() == null
-                || !danhSachTrangThai.contains(room.getTrangThai())) {
-            bindingResult.rejectValue("trangThai", "invalid",
-                    "Vui lòng chọn trạng thái hợp lệ");
-        }
+//        if (room.getTrangThai() == null
+//                || !danhSachTrangThai.contains(room.getTrangThai())) {
+//            bindingResult.rejectValue("trangThai", "invalid",
+//                    "Vui lòng chọn trạng thái hợp lệ");
+//        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("danhSachLoaiPhong", roomRepository.findAllLoaiPhong());
-            model.addAttribute("danhSachTrangThai", danhSachTrangThai);
             return "ThemPhong";
         }
-
         roomRepository.save(room);
 
         redirectAttributes.addFlashAttribute(
@@ -249,9 +245,7 @@ public class RoomController {
         return "redirect:/khachhang/phong";
     }
 
-
 // ================= SỬA PHÒNG =================
-
     @GetMapping("/phong/sua/{soPhong}")
     public String hienThiFormSua(
             @PathVariable String soPhong,
@@ -300,9 +294,9 @@ public class RoomController {
 
         // Kiểm tra giá phòng
         if (!bindingResult.hasFieldErrors("giaPhong")
-                && (!Double.isFinite(room.getGiaPhong()) || room.getGiaPhong() <= 0)) {
+                && (!Double.isFinite(room.getGiaPhong()) || room.getGiaPhong() < 100000)) {
             bindingResult.rejectValue("giaPhong", "invalid",
-                    "Giá phòng phải lớn hơn 0");
+                    "Giá phòng phải ít nhất là 100.000 VNĐ");
         }
 
         // Kiểm tra loại phòng
@@ -329,9 +323,7 @@ public class RoomController {
         return "redirect:/khachhang/phong";
     }
 
-
 // ================= XÓA PHÒNG =================
-
     @PostMapping("/phong/xoa/{soPhong}")
     public String xoaPhong(
             @PathVariable String soPhong,

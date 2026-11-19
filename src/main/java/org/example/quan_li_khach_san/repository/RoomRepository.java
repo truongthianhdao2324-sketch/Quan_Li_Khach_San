@@ -1,4 +1,3 @@
-
 package org.example.quan_li_khach_san.repository;
 
 import org.example.quan_li_khach_san.entity.Room;

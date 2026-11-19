@@ -589,13 +589,13 @@
         }
 
         .btn-hoan-tat-don {
-            background: #fff8e1;
-            color: #f57f17;
-            border: 1px solid #ffe0b2;
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
         }
 
         .btn-hoan-tat-don:hover {
-            background: #f57f17;
+            background: #c62828;
             color: white;
         }
 
@@ -726,8 +726,6 @@
             color: #e05278;
         }
 
-
-
         /* KHU VỰC TRẠNG THÁI PHÒNG */
         .room-status {
             margin-top: 16px;
@@ -747,6 +745,20 @@
             white-space: nowrap;
         }
 
+        /* Thu nhỏ card phòng dành cho Lễ tân */
+        .room-card.room-card-letan {
+            min-height: 230px;
+        }
+
+        /* Không chừa khoảng trống khi phòng không có nút thao tác */
+        .room-card.room-card-letan .room-status-actions:empty {
+            display: none;
+        }
+
+        /* Card Lễ tân không cần kéo giãn khu vực thao tác */
+        .room-card.room-card-letan > div:nth-child(2) {
+            flex: 0 0 auto;
+        }
 
     </style>
 </head>
@@ -841,7 +853,6 @@
         </div>
 
     </div>
-
 
     <div class="card-container">
         <!-- THANH CÔNG CỤ -->
@@ -954,7 +965,8 @@
         <div class="room-grid">
             <!--Card phòng-->
             <div class="room-card"
-                 th:each="p : ${danhSachPhong}">
+                 th:each="p : ${danhSachPhong}"
+                 th:classappend="${!laAdmin} ? ' room-card-letan' : ''">
 
                 <div>
                     <div class="room-header">
@@ -1095,24 +1107,8 @@
 
         </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </div>
+
     <!-- NHẬT KÝ HOẠT ĐỘNG -->
     <div class="room-log">
         <div class="room-log-header">
