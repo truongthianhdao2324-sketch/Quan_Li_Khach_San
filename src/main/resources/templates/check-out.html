@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Check-out Trả Phòng - Kênh Lễ Tân</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff9fa;
+            color: #5c5055;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #fde2e4;
+            color: #6b4c58;
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(253, 226, 228, 0.4);
+        }
+
+        .sidebar h2 {
+            font-size: 19px;
+            margin-top: 15px;
+            margin-bottom: 40px;
+            color: #593945;
+        }
+
+        .sidebar .nav-link {
+            color: #6b4c58;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #ff758c;
+            color: #ffffff;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            color: #593945;
+        }
+
+        .content-card {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(250, 225, 221, 0.6);
+            border: 1px solid #fae1dd !important;
+            margin-top: 25px;
+        }
+
+        .btn-pink {
+            background-color: #ff758c;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-pink:hover {
+            background-color: #ff5c77;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-pink {
+            background-color: #fff0f3;
+            color: #ff5c77;
+            border: 1px solid #ffd6dd;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-pink:hover {
+            background-color: #ff758c;
+            color: #ffffff;
+            border-color: #ff758c;
+        }
+
+        .room-checkout-card {
+            border: 1px solid #fae1dd;
+            border-radius: 16px;
+            background-color: #fffafb;
+            transition: all 0.25s ease;
+        }
+
+        .room-checkout-card:hover {
+            background-color: #ffffff;
+            border-color: #ff758c;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 117, 140, 0.15);
+        }
+
+        .form-control:focus {
+            border-color: #ff758c;
+            box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2);
+        }
+
+        /* NÚT ĐĂNG XUẤT */
+        .nut-dang-xuat{
+            margin-top: auto;
+            color: #ff4d6d;
+        }
+        .sidebar a.nut-dang-xuat {
+            margin-top: auto;
+            color: #ff4d6d;
+        }
+
+        .sidebar a.nut-dang-xuat:hover {
+            color: white;
+            background-color: #ff758c;
+        }
+    </style>
+</head>
+<body class="d-flex vh-100 overflow-hidden m-0 p-0">
+
+<!-- SIDEBAR KÊNH LỄ TÂN -->
+<aside class="sidebar d-flex flex-column flex-shrink-0">
+    <h2 class="fw-bold text-center">🌸 KÊNH LỄ TÂN</h2>
+    <nav class="nav flex-column flex-grow-1">
+        <a class="nav-link d-flex align-items-center" th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/checkin}">🛎️ Nhận phòng (Check-in)</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+        <a class="nav-link active d-flex align-items-center" th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
+        <a class="nav-link d-flex align-items-center mt-auto mb-0 nut-dang-xuat" th:href="@{/dang-nhap}">Đăng xuất</a>
+    </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content flex-grow-1 overflow-auto">
+
+    <!-- Tiêu đề & Nút quay lại -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h1 class="fw-bold page-title m-0">🛎️ Chọn Phòng Thanh Toán Check-out</h1>
+            <p class="text-muted small mb-0 mt-1">
+                Danh sách các phòng đang lưu trú chờ lập hóa đơn trả phòng
+            </p>
+        </div>
+
+        <a th:href="@{/hoadon/danhsach}" class="btn btn-outline-pink px-4 py-2 text-decoration-none">
+            ← Quay lại danh sách hóa đơn
+        </a>
+    </div>
+
+    <!-- Card danh sách phòng đang lưu trú -->
+    <div class="card content-card border-0">
+
+        <!-- Thanh tìm kiếm nhanh + Thống kê số phòng đang ở -->
+        <div class="row g-3 align-items-center mb-4">
+            <div class="col-md-7">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-3">🔍</span>
+                    <input type="text" id="timPhongCheckOut" class="form-control border-start-0 py-2 rounded-end-3"
+                           placeholder="Nhập nhanh số phòng (vd: 101) hoặc tên khách hàng để lọc..."
+                           onkeyup="locPhongCheckOut()">
+                </div>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <span class="badge rounded-pill px-3 py-2 fs-6 fw-semibold"
+                      style="background-color: #fff0f3; color: #ff5c77; border: 1px solid #ffd6dd;">
+                    Đang lưu trú: <span th:text="${#lists.size(dsPhongDangO)}">0</span> phòng
+                </span>
+            </div>
+        </div>
+
+        <!-- Trường hợp không có phòng nào đang lưu trú -->
+        <div th:if="${#lists.isEmpty(dsPhongDangO)}" class="text-center py-5">
+            <div class="fs-1 mb-2">🛏️</div>
+            <h5 class="fw-bold" style="color: #593945;">Không có phòng nào đang lưu trú</h5>
+            <p class="text-muted small mb-3">Tất cả các phòng hiện đã được thanh toán trả phòng hoặc đang trống.</p>
+            <a th:href="@{/hoadon/danhsach}" class="btn btn-pink px-4 py-2">Xem danh sách hóa đơn</a>
+        </div>
+
+        <!-- Lưới thẻ các phòng đang lưu trú -->
+        <div th:if="${!#lists.isEmpty(dsPhongDangO)}" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+            <div class="col item-phong-checkout"
+                 th:each="dp : ${dsPhongDangO}"
+                 th:attr="data-search=${dp.soPhong + ' ' + (dp.khachHang != null ? dp.khachHang.hoTen : '')}">
+                <div class="room-checkout-card p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge rounded-3 px-3 py-2 fs-6 fw-bold"
+                                  style="background-color: #ff758c; color: #ffffff;"
+                                  th:text="'Phòng ' + ${dp.soPhong}">Phòng 101</span>
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">
+                                Đang lưu trú
+                            </span>
+                        </div>
+
+                        <h6 class="fw-bold mt-2 mb-1" style="color: #593945;"
+                            th:text="${dp.khachHang != null ? dp.khachHang.hoTen : 'Khách lưu trú'}">
+                            Nguyễn Văn An
+                        </h6>
+
+                        <div class="small text-muted mb-3">
+                            <span>🕒 Nhận phòng: </span>
+                            <strong th:text="${dp.ngayNhanPhong != null ? #temporals.format(dp.ngayNhanPhong, 'dd/MM/yyyy HH:mm') : '---'}">
+                                01/10/2026 08:00
+                            </strong>
+                        </div>
+                    </div>
+
+                    <a th:href="@{/hoadon/checkout/{soPhong}(soPhong=${dp.soPhong})}"
+                       class="btn btn-pink w-100 py-2 text-decoration-none">
+                        Tính tiền &amp; Trả phòng →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông báo khi gõ tìm kiếm không khớp -->
+        <div id="khongTimThayPhong" class="text-center text-muted fst-italic py-5 d-none">
+            Không tìm thấy phòng hoặc khách hàng phù hợp với từ khóa!
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function locPhongCheckOut() {
+        const tuKhoa = document.getElementById('timPhongCheckOut').value.toLowerCase().trim();
+        const danhSach = document.querySelectorAll('.item-phong-checkout');
+        let soKetQua = 0;
+
+        danhSach.forEach(item => {
+            const duLieu = item.getAttribute('data-search').toLowerCase();
+            if (duLieu.includes(tuKhoa)) {
+                item.classList.remove('d-none');
+                soKetQua++;
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+
+        const thongBaoTrong = document.getElementById('khongTimThayPhong');
+        if (thongBaoTrong) {
+            thongBaoTrong.classList.toggle('d-none', soKetQua > 0);
+        }
+    }
+</script>
+
+</body>
+</html>

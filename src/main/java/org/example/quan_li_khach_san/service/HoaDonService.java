@@ -1,0 +1,307 @@
+package org.example.quan_li_khach_san.service;
+
+import org.example.quan_li_khach_san.entity.DatPhong;
+import org.example.quan_li_khach_san.entity.HoaDon;
+import org.example.quan_li_khach_san.entity.Room;
+import org.example.quan_li_khach_san.repository.DatPhongRepository;
+import org.example.quan_li_khach_san.repository.HoaDonRepository;
+import org.example.quan_li_khach_san.repository.RoomRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+@Service
+public class HoaDonService {
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
+
+    @Autowired
+    private DatPhongRepository datPhongRepository;
+
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private HoaDonLogService hoaDonLogService;
+
+    // Khóa đồng bộ theo từng phiếu đặt phòng để tránh 2 lễ tân check-out trùng 1 phòng cùng lúc
+    private final ConcurrentHashMap<Long, Object> checkoutLocks = new ConcurrentHashMap<>();
+
+    public static class ThongTinCheckOut {
+        public HoaDon hoaDon;
+        public long soNgayO;
+        public double donGiaPhong;
+        public LocalDateTime thoiGianCheckOut;
+    }
+
+    // Tính số ngày ở thực tế (tối thiểu 1 ngày)
+    public long tinhSoNgayO(DatPhong dp, LocalDateTime mocKetThuc) {
+        if (dp == null || dp.getNgayNhanPhong() == null) {
+            return 1L;
+        }
+        LocalDateTime thoiDiemKetThuc = (dp.getNgayTraPhong() != null)
+                ? dp.getNgayTraPhong()
+                : (mocKetThuc != null ? mocKetThuc : LocalDateTime.now());
+
+        long days = ChronoUnit.DAYS.between(
+                dp.getNgayNhanPhong().toLocalDate(),
+                thoiDiemKetThuc.toLocalDate()
+        );
+        return Math.max(1L, days);
+    }
+
+    // Lấy đơn giá phòng niêm yết (gia_phong) của từng hóa đơn để hiển thị lên cột "GIÁ PHÒNG"
+    public Map<Long, Double> layMapGiaPhong(List<HoaDon> dsHoaDon) {
+        Map<Long, Double> mapGiaPhong = new HashMap<>();
+        if (dsHoaDon == null) {
+            return mapGiaPhong;
+        }
+        for (HoaDon hd : dsHoaDon) {
+            double giaPhong = layDonGiaPhong(hd);
+            if (hd.getMaHoaDon() != null) {
+                mapGiaPhong.put(hd.getMaHoaDon(), giaPhong);
+            }
+        }
+        return mapGiaPhong;
+    }
+
+    // Lấy đơn giá 1 ngày của phòng gắn với hóa đơn
+    public double layDonGiaPhong(HoaDon hd) {
+        if (hd != null && hd.getDatPhong() != null && hd.getDatPhong().getSoPhong() != null) {
+            Room room = roomRepository.findById(hd.getDatPhong().getSoPhong()).orElse(null);
+            if (room != null) {
+                return Math.max(0, room.getGiaPhong());
+            }
+        }
+        return (hd != null) ? Math.max(0, hd.getTienPhong()) : 0.0;
+    }
+
+    // Tính số ngày ở hiển thị trên biên lai chi tiết (ChiTietHoaDon.html)
+    public long tinhSoNgayOChoHoaDon(HoaDon hd) {
+        if (hd != null && hd.getDatPhong() != null) {
+            LocalDateTime mocKetThuc = (hd.getDatPhong().getNgayTraPhong() != null)
+                    ? hd.getDatPhong().getNgayTraPhong()
+                    : (hd.getNgayLap() != null ? hd.getNgayLap() : LocalDateTime.now());
+            return tinhSoNgayO(hd.getDatPhong(), mocKetThuc);
+        }
+        return 1L;
+    }
+
+    // Tự động đồng bộ các khách "Đang lưu trú" thành hóa đơn "Chưa thanh toán"
+    @Transactional
+    public void dongBoHoaDonKhachDangLuuTru() {
+        List<DatPhong> dsDangLuuTru = datPhongRepository.findAll().stream()
+                .filter(dp -> dp.getTrangThai() != null && dp.getTrangThai().equalsIgnoreCase("Đang lưu trú"))
+                .collect(Collectors.toList());
+
+        LocalDateTime hienTai = LocalDateTime.now();
+
+        for (DatPhong dp : dsDangLuuTru) {
+            Room room = roomRepository.findById(dp.getSoPhong()).orElse(null);
+            double donGiaPhong = (room != null) ? Math.max(0, room.getGiaPhong()) : 0.0;
+
+            long soNgayO = tinhSoNgayO(dp, hienTai);
+            double tienPhong = soNgayO * donGiaPhong;
+
+            Double tienDichVuDb = hoaDonRepository.tinhTongTienDichVuTheoDatPhong(dp.getMaDatPhong());
+            double tienDichVu = (tienDichVuDb != null) ? Math.max(0, tienDichVuDb) : 0.0;
+            double tongTien = tienPhong + tienDichVu;
+
+            Optional<HoaDon> hdOpt = hoaDonRepository.findByMaDatPhong(dp.getMaDatPhong());
+            boolean laHoaDonMoi = hdOpt.isEmpty();
+            HoaDon hd = hdOpt.orElseGet(HoaDon::new);
+
+            boolean canCapNhat = laHoaDonMoi
+                    || !"Chưa thanh toán".equalsIgnoreCase(hd.getTrangThai())
+                    || hd.getNgayLap() != null
+                    || !Objects.equals(hd.getTienPhong(), tienPhong)
+                    || !Objects.equals(hd.getTienDichVu(), tienDichVu);
+
+            if (canCapNhat) {
+                hd.setMaDatPhong(dp.getMaDatPhong());
+                hd.setNgayLap(null);
+                hd.setTienPhong(tienPhong);
+                hd.setTienDichVu(tienDichVu);
+                hd.setTongTien(tongTien);
+                hd.setTrangThai("Chưa thanh toán");
+                HoaDon hdDaLuu = hoaDonRepository.save(hd);
+
+                if (laHoaDonMoi) {
+                    String tenKhach = (dp.getKhachHang() != null && dp.getKhachHang().getHoTen() != null)
+                            ? dp.getKhachHang().getHoTen() : "Khách lẻ";
+                    hoaDonLogService.ghiLog(
+                            "Hệ thống",
+                            "Tạo hóa đơn tạm tính mới",
+                            "Mã " + hdDaLuu.getMaHienThi() + " - Phòng " + dp.getSoPhong()
+                                    + " - Khách hàng: " + tenKhach + " (Tạm tính: " + String.format("%,.0f", tongTien) + " đ)",
+                            "Chưa có hóa đơn",
+                            "Chưa thanh toán",
+                            "Thành công"
+                    );
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public List<HoaDon> timKiemVaSapXep(String tuKhoa, String trangThai) {
+        dongBoHoaDonKhachDangLuuTru();
+        String keyword = (tuKhoa != null) ? tuKhoa.trim() : null;
+        List<HoaDon> dsHoaDon = hoaDonRepository.timKiemHoaDon(keyword, trangThai);
+        dsHoaDon.sort(Comparator.comparing(HoaDon::getMaHoaDon));
+        return dsHoaDon;
+    }
+
+    public List<DatPhong> layDanhSachPhongDangLuuTru() {
+        return datPhongRepository.findAll().stream()
+                .filter(dp -> dp.getTrangThai() != null && dp.getTrangThai().equalsIgnoreCase("Đang lưu trú"))
+                .sorted(Comparator.comparing(DatPhong::getSoPhong))
+                .collect(Collectors.toList());
+    }
+
+    public Double layTongDoanhThu() {
+        return hoaDonRepository.tinhTongDoanhThu();
+    }
+
+    public HoaDon layTheoId(Long id) {
+        return hoaDonRepository.findById(id).orElse(null);
+    }
+
+    // Bước 1: Mở trang Check-out -> Tính số ngày từ ngày nhận phòng đến thời điểm hiện tại
+    public ThongTinCheckOut chuanBiCheckOut(String soPhong) {
+        Room room = roomRepository.findById(soPhong).orElse(null);
+        DatPhong datPhong = datPhongRepository
+                .findFirstBySoPhongAndTrangThaiOrderByNgayNhanPhongDesc(soPhong, "Đang lưu trú")
+                .orElse(null);
+
+        if (room == null || datPhong == null) {
+            return null;
+        }
+
+        LocalDateTime thoiDiemCheckOut = LocalDateTime.now();
+
+        long soNgayO = tinhSoNgayO(datPhong, thoiDiemCheckOut);
+        double donGiaPhong = Math.max(0, room.getGiaPhong());
+        double tienPhong = soNgayO * donGiaPhong;
+
+        Double tienDichVuDb = hoaDonRepository.tinhTongTienDichVuTheoDatPhong(datPhong.getMaDatPhong());
+        double tienDichVu = (tienDichVuDb != null) ? Math.max(0, tienDichVuDb) : 0.0;
+
+        HoaDon hoaDon = new HoaDon();
+        hoaDon.setMaDatPhong(datPhong.getMaDatPhong());
+        hoaDon.setDatPhong(datPhong);
+        hoaDon.setNgayLap(thoiDiemCheckOut);
+        hoaDon.setTienPhong(tienPhong);
+        hoaDon.setTienDichVu(tienDichVu);
+        hoaDon.setTongTien(tienPhong + tienDichVu);
+        hoaDon.setTrangThai("Chưa thanh toán");
+
+        ThongTinCheckOut info = new ThongTinCheckOut();
+        info.hoaDon = hoaDon;
+        info.soNgayO = soNgayO;
+        info.donGiaPhong = donGiaPhong;
+        info.thoiGianCheckOut = thoiDiemCheckOut;
+        return info;
+    }
+
+    // Bước 2: Xác nhận thanh toán & Trả phòng
+    @Transactional
+    public HoaDon xacNhanThanhToanVaTraPhong(Long maDatPhong, String nguoiThucHien) {
+        if (maDatPhong == null) {
+            return null;
+        }
+
+        Object lock = checkoutLocks.computeIfAbsent(maDatPhong, k -> new Object());
+        synchronized (lock) {
+            try {
+                DatPhong datPhong = datPhongRepository.findById(maDatPhong).orElse(null);
+                if (datPhong == null) {
+                    hoaDonLogService.ghiLog(
+                            nguoiThucHien,
+                            "Thanh toán Check-out trả phòng",
+                            "Mã đặt phòng #" + maDatPhong,
+                            "Không xác định",
+                            "Không xác định",
+                            "Thất bại - Không tìm thấy phiếu đặt phòng"
+                    );
+                    return null;
+                }
+
+                String tenKhach = (datPhong.getKhachHang() != null && datPhong.getKhachHang().getHoTen() != null)
+                        ? datPhong.getKhachHang().getHoTen() : "Khách lẻ";
+
+                // Chống bấm thanh toán trùng 2 lần
+                if ("Đã trả phòng".equalsIgnoreCase(datPhong.getTrangThai())) {
+                    HoaDon hdCu = hoaDonRepository.findByMaDatPhong(maDatPhong).orElse(null);
+                    hoaDonLogService.ghiLog(
+                            nguoiThucHien,
+                            "Thanh toán Check-out trả phòng",
+                            "Phòng " + datPhong.getSoPhong() + " - Khách hàng: " + tenKhach,
+                            "Đã thanh toán",
+                            "Đã thanh toán",
+                            "Thất bại - Hóa đơn đã được thanh toán trước đó"
+                    );
+                    return hdCu;
+                }
+
+                Room room = roomRepository.findById(datPhong.getSoPhong()).orElse(null);
+                double donGiaPhong = (room != null) ? Math.max(0, room.getGiaPhong()) : 0.0;
+
+                LocalDateTime thoiDiemThanhToan = LocalDateTime.now();
+
+                long soNgayO = tinhSoNgayO(datPhong, thoiDiemThanhToan);
+                double tienPhong = soNgayO * donGiaPhong;
+
+                Double tienDichVuDb = hoaDonRepository.tinhTongTienDichVuTheoDatPhong(maDatPhong);
+                double tienDichVu = (tienDichVuDb != null) ? Math.max(0, tienDichVuDb) : 0.0;
+                double tongTien = tienPhong + tienDichVu;
+
+                HoaDon hoaDon = hoaDonRepository.findByMaDatPhong(maDatPhong).orElseGet(HoaDon::new);
+                hoaDon.setMaDatPhong(maDatPhong);
+                hoaDon.setTienPhong(tienPhong);
+                hoaDon.setTienDichVu(tienDichVu);
+                hoaDon.setTongTien(tongTien);
+                hoaDon.setNgayLap(thoiDiemThanhToan);
+                hoaDon.setTrangThai("Đã thanh toán");
+                HoaDon hoaDonDaLuu = hoaDonRepository.save(hoaDon);
+
+                if (datPhong.getNgayTraPhong() == null) {
+                    datPhong.setNgayTraPhong(thoiDiemThanhToan);
+                }
+                datPhong.setTrangThai("Đã trả phòng");
+                datPhongRepository.save(datPhong);
+
+                if (room != null) {
+                    room.setTrangThai("Còn trống");
+                    roomRepository.save(room);
+                }
+
+                hoaDonLogService.ghiLog(
+                        nguoiThucHien,
+                        "Thanh toán Check-out trả phòng",
+                        "Hóa đơn " + hoaDonDaLuu.getMaHienThi() + " - Phòng " + datPhong.getSoPhong()
+                                + " - Khách hàng: " + tenKhach + " - Tổng thu: " + String.format("%,.0f", tongTien) + " đ",
+                        "Chưa thanh toán",
+                        "Đã thanh toán",
+                        "Thành công"
+                );
+
+                return hoaDonDaLuu;
+            } finally {
+                checkoutLocks.remove(maDatPhong);
+            }
+        }
+    }
+}

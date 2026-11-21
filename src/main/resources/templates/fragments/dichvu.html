@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · Quản lý khách sạn'">Dịch vụ</title>
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/dichvu.css}">
+</head><body>
+<aside th:fragment="nav" class="sidebar" aria-label="Menu chính"
+       th:with="role=${session.user.vaiTro == null ? '' : #strings.toUpperCase(#strings.trim(session.user.vaiTro))},
+                dichVuAdmin=${role == 'ADMIN'}, dichVuLeTan=${role == 'RECEPTIONIST' or role == 'LETAN'}">
+  <h2 th:text="${dichVuAdmin} ? '🌸 QUẢN TRỊ VIÊN' : '🌸 KÊNH LỄ TÂN'">🌸 KÊNH LỄ TÂN</h2>
+  <nav class="main-menu" aria-label="Các chức năng">
+    <a th:href="${dichVuAdmin} ? @{/admin/dashboard} : @{/letan/dashboard}">🏠 Trang chủ</a>
+    <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+    <a th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+    <a th:href="@{/checkin}">🛎️ Nhận phòng (Check-in)</a>
+    <a th:if="${dichVuAdmin}" th:href="@{/admin/nhanvien}">👤 Quản lý Nhân viên</a>
+    <a class="active" aria-current="page" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+    <div class="service-menu" aria-label="Chức năng dịch vụ">
+      <a th:href="@{/dich-vu}" th:classappend="${dichVuRoute != '/dich-vu/goi' and dichVuRoute != '/dich-vu/lich-su'} ? 'selected' : ''">Danh mục dịch vụ</a>
+      <a th:if="${dichVuLeTan}" th:href="@{/dich-vu/goi}" th:classappend="${dichVuRoute == '/dich-vu/goi'} ? 'selected' : ''">Ghi nhận dịch vụ / bồi thường</a>
+      <a th:href="@{/dich-vu/lich-su}" th:classappend="${dichVuRoute == '/dich-vu/lich-su'} ? 'selected' : ''">Lịch sử sử dụng</a>
+    </div>
+    <a th:href="${dichVuAdmin} ? @{/admin/hoadon} : @{/hoadon/danhsach}">📄 Quản lý Hóa đơn</a>
+  </nav>
+  <a class="logout-link nut-dang-xuat" th:href="@{/dang-xuat}">Đăng xuất</a>
+</aside>
+<div th:fragment="alerts" aria-live="polite">
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+</div>
+<footer th:fragment="footer" class="container py-4 text-secondary small">Hệ thống nội bộ khách sạn · Dịch vụ phát sinh</footer>
+</body></html>
