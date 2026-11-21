@@ -1,14 +1,19 @@
 package org.example.quan_li_khach_san.controller;
 
+<<<<<<< HEAD
 import org.example.quan_li_khach_san.repository.DatPhongRepository;
 import org.example.quan_li_khach_san.repository.HoaDonRepository;
 import org.example.quan_li_khach_san.repository.KhachHangRepository;
 import org.example.quan_li_khach_san.repository.RoomRepository;
+=======
+import org.example.quan_li_khach_san.repository.KhachHangRepository;
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+<<<<<<< HEAD
 import jakarta.servlet.http.HttpSession;
 import org.example.quan_li_khach_san.entity.TaiKhoan;
 import org.springframework.ui.Model;
@@ -18,12 +23,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 @Controller
 public class ThongKeController {
 
     @Autowired
     private KhachHangRepository khachHangRepository;
 
+<<<<<<< HEAD
     @Autowired
     private RoomRepository roomRepository;
 
@@ -142,6 +150,19 @@ public class ThongKeController {
             return "redirect:/dang-nhap";
         }
         napDuLieuThongKe(model);
+=======
+    @GetMapping("/admin/thong-ke")
+    public String hienThiDashboard(Model model) {
+        // Lấy số lượng khách thực tế từ hệ thống của Thành viên 1
+        long tongLuongKhach = khachHangRepository.count();
+        model.addAttribute("tongLuongKhach", tongLuongKhach);
+
+        // Doanh thu (có thể lấy từ repository hóa đơn của TV4 hoặc tạm gán số liệu)
+        double tongDoanhThu = 48500000;
+        model.addAttribute("tongDoanhThu", tongDoanhThu);
+
+        // Tên file HTML trùng khớp với file sẵn có trong thư mục templates của bạn
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         return "AdminDashboard";
     }
 }

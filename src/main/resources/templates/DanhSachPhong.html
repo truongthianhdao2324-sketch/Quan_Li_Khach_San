@@ -16,6 +16,7 @@
             color: #5c5055;
         }
 
+<<<<<<< HEAD
         /* --- THÔNG BÁO --- */
         .toast-message {
             position: fixed;
@@ -66,6 +67,8 @@
                 transform: translateY(0);
             }
         }
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         /* --- SIDEBAR --- */
         .sidebar {
             width: 260px;
@@ -137,14 +140,18 @@
             flex-wrap: wrap;
             gap: 15px;
         }
+<<<<<<< HEAD
         .top-bar-tilte{
             color: #593945;
             margin: 0;
         }
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 
         .btn-add {
             background-color: #ff758c;
             color: white;
+<<<<<<< HEAD
             border-color: #ff758c;
             display: block;
             text-decoration: none;
@@ -176,13 +183,27 @@
             border-radius: 12px;
             transition: all 0.3s ease;
             box-shadow: none;
+=======
+            padding: 12px 22px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
+<<<<<<< HEAD
         .btn-search:hover {
             box-shadow: 0 4px 15px rgba(255, 117, 140, 0.5);
+=======
+        .btn-add:hover {
+            background-color: #ff5c77;
+            transform: translateY(-2px);
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         }
 
         /* --- THANH LỌC TRẠNG THÁI (FILTER TABS) --- */
@@ -215,6 +236,7 @@
             box-shadow: 0 3px 10px rgba(255, 117, 140, 0.3);
         }
 
+<<<<<<< HEAD
         /* NÚT ĐĂNG XUẤT */
         .nut-dang-xuat{
             margin-top: auto;
@@ -230,6 +252,8 @@
             background-color: #ff758c;
         }
 
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         /* --- GIAO DIỆN DẠNG LƯỚI KHUNG (GRID) --- */
         .room-grid {
             display: grid;
@@ -247,6 +271,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
+<<<<<<< HEAD
             justify-content: flex-start;
             min-height: 323px;
             box-sizing: border-box;
@@ -291,6 +316,9 @@
             gap: 8px;
             margin-top: auto;
             padding-top: 10px;
+=======
+            justify-content: space-between;
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         }
 
         .room-card:hover {
@@ -301,8 +329,12 @@
         .room-header {
             display: flex;
             justify-content: space-between;
+<<<<<<< HEAD
             align-items: flex-start;
             gap: 8px;
+=======
+            align-items: center;
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
             margin-bottom: 10px;
         }
 
@@ -310,9 +342,12 @@
             font-size: 20px;
             font-weight: 700;
             color: #593945;
+<<<<<<< HEAD
             flex: 1;
             min-width: 0;
             overflow-wrap: anywhere;
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         }
 
         .room-type {
@@ -322,8 +357,11 @@
             padding: 4px 10px;
             border-radius: 8px;
             font-weight: 600;
+<<<<<<< HEAD
             white-space: nowrap;
             flex-shrink: 0;
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         }
 
         .room-price {
@@ -344,6 +382,31 @@
             background-color: #fff8e1; color: #f57f17; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; border: 1px solid #ffe0b2; display: inline-block;
         }
 
+<<<<<<< HEAD
+=======
+        /* --- NÚT BẤM ĐỔI TRẠNG THÁI NHANH --- */
+        .btn-status-change {
+            display: block;
+            text-align: center;
+            background-color: #fff0f3;
+            color: #ff758c;
+            text-decoration: none;
+            padding: 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            margin-top: 15px;
+            border: 1px solid #fae1dd;
+            transition: all 0.2s;
+        }
+
+        .btn-status-change:hover {
+            background-color: #ff758c;
+            color: white;
+            box-shadow: 0 3px 10px rgba(255, 117, 140, 0.3);
+        }
+
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         .no-data {
             grid-column: 1 / -1;
             text-align: center;
@@ -351,6 +414,7 @@
             padding: 40px;
             font-style: italic;
         }
+<<<<<<< HEAD
 
         /* THỐNG KÊ PHÒNG */
         .room-statistics {
@@ -760,12 +824,15 @@
             flex: 0 0 auto;
         }
 
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
     </style>
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
+<<<<<<< HEAD
 <!--    KENH-->
     <h2 th:if="${session.user.vaiTro == 'ADMIN'}">👑 QUẢN TRỊ VIÊN</h2>
     <h2 th:if="${session.user.vaiTro == 'RECEPTIONIST'}">🏨 KÊNH LỄ TÂN</h2>
@@ -794,6 +861,14 @@
     </div>
 
     <a th:href="@{/dang-nhap}" class="nut-dang-xuat">Đăng xuất</a>
+=======
+    <h2>🌸 KÊNH LỄ TÂN</h2>
+    <a th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
+    <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+    <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
+    <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
+    <a th:href="@{/dang-nhap}" style="margin-top: auto; color: #ff4d6d;">Đăng xuất</a>
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 </div>
 
 <!-- MAIN CONTENT -->
@@ -803,6 +878,7 @@
         <h1>Quản Lý Hệ Thống Phòng Khách Sạn</h1>
     </div>
 
+<<<<<<< HEAD
     <!-- THỐNG KÊ PHÒNG -->
     <div class="room-statistics">
 
@@ -1115,12 +1191,62 @@
             <div class="no-data"
                  th:if="${#lists.isEmpty(danhSachPhong)}">
                 Không tìm thấy phòng phù hợp!
+=======
+    <div class="card-container">
+
+        <!-- THANH LỌC TRẠNG THÁI -->
+        <div class="filter-bar">
+            <span style="align-self: center; font-weight: 700; color: #593945; margin-right: 5px;">Lọc trạng thái:</span>
+            <a th:href="@{/khachhang/phong}" class="filter-btn" th:classappend="${param.trangThai == null} ? 'active'">Tất cả</a>
+            <a th:href="@{/khachhang/phong(trangThai='Còn trống')}" class="filter-btn" th:classappend="${param.trangThai != null and param.trangThai[0] == 'Còn trống'} ? 'active'">Còn trống</a>
+            <a th:href="@{/khachhang/phong(trangThai='Đã có khách')}" class="filter-btn" th:classappend="${param.trangThai != null and param.trangThai[0] == 'Đã có khách'} ? 'active'">Đã có khách</a>
+            <a th:href="@{/khachhang/phong(trangThai='Đang dọn phòng')}" class="filter-btn" th:classappend="${param.trangThai != null and param.trangThai[0] == 'Đang dọn phòng'} ? 'active'">Đang dọn phòng</a>
+        </div>
+
+        <!-- KHU VỰC HIỂN THỊ DẠNG KHUNG (GRID) -->
+        <div class="room-grid">
+
+            <!-- Duyệt qua danh sách phòng -->
+            <div class="room-card" th:each="p : ${danhSachPhong}">
+
+                <div>
+                    <div class="room-header">
+                        <span class="room-number" th:text="'Phòng ' + ${p.soPhong}">Phòng 101</span>
+                        <span class="room-type" th:text="${p.loaiPhong}">Tiêu chuẩn</span>
+                    </div>
+
+                    <div class="room-price">
+                        <span th:text="${#numbers.formatDecimal(p.giaPhong, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</span>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- Trạng thái phòng -->
+                    <div style="margin-top: 5px;">
+                        <span th:if="${p.trangThai == 'Còn trống'}" class="badge-trong">● Còn trống</span>
+                        <span th:if="${p.trangThai == 'Đã có khách'}" class="badge-co-khach">● Đã có khách</span>
+                        <span th:if="${p.trangThai == 'Đang dọn phòng'}" class="badge-don-phong">● Đang dọn phòng</span>
+                    </div>
+
+                    <!-- Nút bấm đổi trạng thái nhanh trực tiếp trên khung -->
+                    <a th:href="@{/khachhang/phong/doi-trang-thai(soPhong=${p.soPhong})}" class="btn-status-change">
+                        🔄 Đổi trạng thái
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Trường hợp không có phòng nào phù hợp bộ lọc -->
+            <div class="no-data" th:if="${#lists.isEmpty(danhSachPhong)}">
+                Không tìm thấy dữ liệu phòng nào!
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
             </div>
 
         </div>
 
     </div>
 
+<<<<<<< HEAD
     <!-- NHẬT KÝ HOẠT ĐỘNG -->
     <div class="room-log">
         <div class="room-log-header">
@@ -1168,5 +1294,9 @@
         });
     }, 3000);
 </script>
+=======
+</div>
+
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 </body>
 </html>

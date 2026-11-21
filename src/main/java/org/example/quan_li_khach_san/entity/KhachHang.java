@@ -29,6 +29,7 @@ public class KhachHang {
     @Column(name = "email")
     private String email;
 
+<<<<<<< HEAD
     @Column(name = "so_phong")
     private String soPhong;
 
@@ -49,6 +50,20 @@ public class KhachHang {
         return String.format("KH%04d", maKhachHang);
     }
 
+=======
+    @Transient
+    private String soPhong;
+
+    public KhachHang() {}
+
+    // Chổ này là tự động sinh dạng mã (KH001, KH002 ...) ai làm phần nay lưu ý nha
+    public String getMaHienThi() {
+        if (maKhachHang == null) return "";
+        return String.format("KH%03d", maKhachHang);
+    }
+
+    // Getters và Setters
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
     public Long getMaKhachHang() { return maKhachHang; }
     public void setMaKhachHang(Long maKhachHang) { this.maKhachHang = maKhachHang; }
 
@@ -72,6 +87,7 @@ public class KhachHang {
 
     public String getSoPhong() { return soPhong; }
     public void setSoPhong(String soPhong) { this.soPhong = soPhong; }
+<<<<<<< HEAD
 
     public String getTrangThai() {
         return (trangThai == null || trangThai.isBlank()) ? "Hoạt động" : trangThai;
@@ -83,4 +99,6 @@ public class KhachHang {
 
     public String getNguoiHuy() { return nguoiHuy; }
     public void setNguoiHuy(String nguoiHuy) { this.nguoiHuy = nguoiHuy; }
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 }

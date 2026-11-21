@@ -10,7 +10,11 @@
             margin: 0;
             padding: 0;
             display: flex;
+<<<<<<< HEAD
             min-height: 100vh;
+=======
+            height: 100vh;
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
             color: #5c5055;
         }
 
@@ -73,12 +77,15 @@
             margin-bottom: 25px;
         }
 
+<<<<<<< HEAD
         @media (max-width: 992px) {
             .stats-grid {
                 grid-template-columns: 1fr;
             }
         }
 
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         .stat-card {
             background: white;
             padding: 25px;
@@ -101,6 +108,7 @@
             margin: 10px 0 0 0;
         }
 
+<<<<<<< HEAD
         .stat-sub {
             margin-top: 10px;
             font-size: 13px;
@@ -108,6 +116,8 @@
             line-height: 1.6;
         }
 
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         .recent-section {
             background: white;
             padding: 25px;
@@ -121,6 +131,7 @@
             color: #593945;
             margin-top: 0;
         }
+<<<<<<< HEAD
 
         .summary-row {
             display: flex;
@@ -137,12 +148,15 @@
             padding: 10px 14px;
             font-size: 14px;
         }
+=======
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <h2>👑 QUẢN TRỊ VIÊN</h2>
+<<<<<<< HEAD
     <a th:href="@{/admin/thong-ke}" class="active">📊 Thống kê doanh thu</a>
     <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
     <a th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
@@ -150,6 +164,13 @@
     <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
     <a th:href="@{/admin/hoadon}">🧾 Quản lý Hóa Đơn</a>
     <a th:href="@{/dang-nhap}" style="margin-top: auto; color: #fff0f3;">Đăng xuất</a>
+=======
+   <a th:href="@{/admin/dashboard}" class="active">📊 Thống kê doanh thu</a>
+    <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+    <a th:href="@{/admin/khachhang/danhsach}">🧑‍🤝‍🧑 Quản lý Khách hàng</a>
+    <a th:href="@{/admin/hoadon}">🧾 Quản lý Hóa Đơn</a>
+    <a th:href="@{/dang-nhap}" style="margin-top: auto; color: #ff4d6d;">Đăng xuất</a>
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 </div>
 
 <div class="main-content">
@@ -158,6 +179,7 @@
     </div>
 
     <div class="stats-grid">
+<<<<<<< HEAD
         <!-- Doanh thu tháng này -->
         <div class="stat-card">
             <h3>Doanh thu tháng này</h3>
@@ -205,11 +227,29 @@
                 Có khách: <strong th:text="${phongDangCoKhach != null ? phongDangCoKhach : 0}">0</strong> ·
                 Đang dọn: <strong th:text="${phongDangDon != null ? phongDangDon : 0}">0</strong>
             </div>
+=======
+        <div class="stat-card">
+            <h3>Tổng doanh thu tháng này</h3>
+            <p style="color: #ff758c;" th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</p>
+        </div>
+        <div class="stat-card">
+            <h3>Tổng lượng khách thực tế</h3>
+            <p th:text="${tongLuongKhach} + ' Khách'">0 Khách</p>
+        </div>
+        <div class="stat-card">
+            <h3>Tổng số nhân viên</h3>
+            <p>6 Người</p>
+        </div>
+        <div class="stat-card">
+            <h3>Tổng phòng khách sạn</h3>
+            <p>8 Phòng</p>
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         </div>
     </div>
 
     <div class="recent-section">
         <h2>Hoạt động hệ thống gần đây</h2>
+<<<<<<< HEAD
         <p style="color: #bfa5ad; font-style: italic;">
             Hệ thống đang hoạt động ổn định, dữ liệu đồng bộ thời gian thực từ phân hệ Lễ tân.
         </p>
@@ -223,8 +263,15 @@
                 <strong th:text="${hoaDonDaThanhToan != null ? hoaDonDaThanhToan : 0}">0</strong>
             </div>
         </div>
+=======
+        <p style="color: #bfa5ad; font-style: italic;">Hệ thống đang hoạt động ổn định, dữ liệu đồng bộ thời gian thực từ phân hệ Lễ tân.</p>
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
     </div>
 </div>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
