@@ -15,6 +15,7 @@ public class HoaDon {
     @Column(name = "ma_dat_phong", nullable = false)
     private Long maDatPhong;
 
+    // Quan hệ ManyToOne liên kết với bảng dat_phong
     @ManyToOne
     @JoinColumn(name = "ma_dat_phong", insertable = false, updatable = false)
     private DatPhong datPhong;
@@ -36,15 +37,6 @@ public class HoaDon {
 
     public HoaDon() {}
 
-    // Tự động tính lại tổng tiền = tiền phòng + tiền dịch vụ mỗi khi Insert hoặc Update
-    @PrePersist
-    @PreUpdate
-    public void capNhatTongTien() {
-        this.tienPhong = Math.max(0, this.tienPhong);
-        this.tienDichVu = Math.max(0, this.tienDichVu);
-        this.tongTien = this.tienPhong + this.tienDichVu;
-    }
-
     public Long getMaHoaDon() { return maHoaDon; }
     public void setMaHoaDon(Long maHoaDon) { this.maHoaDon = maHoaDon; }
 
@@ -58,16 +50,10 @@ public class HoaDon {
     public void setNgayLap(LocalDateTime ngayLap) { this.ngayLap = ngayLap; }
 
     public double getTienPhong() { return tienPhong; }
-    public void setTienPhong(double tienPhong) {
-        this.tienPhong = Math.max(0, tienPhong);
-        this.tongTien = this.tienPhong + this.tienDichVu;
-    }
+    public void setTienPhong(double tienPhong) { this.tienPhong = tienPhong; }
 
     public double getTienDichVu() { return tienDichVu; }
-    public void setTienDichVu(double tienDichVu) {
-        this.tienDichVu = Math.max(0, tienDichVu);
-        this.tongTien = this.tienPhong + this.tienDichVu;
-    }
+    public void setTienDichVu(double tienDichVu) { this.tienDichVu = tienDichVu; }
 
     public double getTongTien() { return tongTien; }
     public void setTongTien(double tongTien) { this.tongTien = tongTien; }

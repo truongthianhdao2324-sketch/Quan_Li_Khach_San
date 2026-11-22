@@ -2,7 +2,6 @@ package org.example.quan_li_khach_san.controller;
 
 import org.example.quan_li_khach_san.entity.HoaDon;
 import org.example.quan_li_khach_san.repository.HoaDonRepository;
-import org.example.quan_li_khach_san.service.HoaDonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,14 +19,10 @@ public class HoaDonApiController {
     @Autowired
     private HoaDonRepository hoaDonRepository;
 
-    @Autowired
-    private HoaDonService hoaDonService;
-
+    // Endpoint phục vụ Client Kế toán kết nối qua URLConnection để đồng bộ dữ liệu
     @GetMapping(value = "/dong-bo", produces = "text/plain;charset=UTF-8")
     public String dongBoDuLieuHoaDon(
             @RequestParam(value = "trangThai", required = false) String trangThai) {
-
-        hoaDonService.dongBoHoaDonKhachDangLuuTru();
 
         List<HoaDon> dsHoaDon = hoaDonRepository.timKiemHoaDon(null, trangThai);
         dsHoaDon.sort(Comparator.comparing(HoaDon::getMaHoaDon));
@@ -39,12 +34,14 @@ public class HoaDonApiController {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         StringBuilder sb = new StringBuilder();
 
+        // Dòng 1: Thông tin tổng hợp doanh thu
         sb.append("SUMMARY|")
                 .append(tongDoanhThu != null ? tongDoanhThu : 0.0).append("|")
                 .append(dsHoaDon.size()).append("|")
                 .append(soDaThanhToan).append("|")
                 .append(soChuaThanhToan).append("\n");
 
+        // Các dòng tiếp theo: Chi tiết từng hóa đơn
         for (HoaDon hd : dsHoaDon) {
             String soPhong = (hd.getDatPhong() != null && hd.getDatPhong().getSoPhong() != null)
                     ? hd.getDatPhong().getSoPhong() : "N/A";

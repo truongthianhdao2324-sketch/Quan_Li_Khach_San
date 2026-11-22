@@ -11,6 +11,7 @@
             color: #5c5055;
         }
 
+        /* Sidebar khớp 100% kích thước thực tế (260px + 20px*2 padding = 300px) của file mẫu */
         .sidebar {
             width: 300px;
             background-color: #fde2e4;
@@ -51,6 +52,13 @@
         .page-title {
             font-size: 26px;
             color: #593945;
+        }
+
+        .revenue-pill {
+            background-color: #ffffff;
+            color: #ff5c77;
+            border: 1px solid #fae1dd;
+            box-shadow: 0 4px 15px rgba(250, 225, 221, 0.6);
         }
 
         .content-card {
@@ -127,21 +135,6 @@
             border-color: #ff758c;
             box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2);
         }
-
-        /* NÚT ĐĂNG XUẤT */
-        .nut-dang-xuat{
-            margin-top: auto;
-            color: #ff4d6d;
-        }
-        .sidebar a.nut-dang-xuat {
-            margin-top: auto;
-            color: #ff4d6d;
-        }
-
-        .sidebar a.nut-dang-xuat:hover {
-            color: white;
-            background-color: #ff758c;
-        }
     </style>
 </head>
 <body class="d-flex vh-100 overflow-hidden m-0 p-0">
@@ -153,29 +146,29 @@
         <a class="nav-link d-flex align-items-center" th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
         <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
         <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
-        <a class="nav-link d-flex align-items-center" th:href="@{/checkin}">🛎️ Nhận phòng (Check-in)</a>
-        <a class="nav-link d-flex align-items-center" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
         <a class="nav-link active d-flex align-items-center" th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
-        <a class="nav-link d-flex align-items-center mt-auto mb-0 nut-dang-xuat" th:href="@{/dang-nhap}">Đăng xuất</a>
+        <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-nhap}">Đăng xuất</a>
     </nav>
 </aside>
 
 <!-- MAIN CONTENT -->
 <main class="main-content flex-grow-1 overflow-auto">
 
-    <!-- Tiêu đề & Nút chuyển sang trang Check-out riêng -->
+    <!-- Tiêu đề & Tổng doanh thu -->
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <h1 class="fw-bold page-title m-0">Quản Lý Hệ Thống Hóa Đơn Khách Sạn</h1>
 
-        <a th:href="@{/hoadon/checkout}" class="btn btn-pink px-4 py-2 text-decoration-none">
-            🛎️ Check-out trả phòng
-        </a>
+        <div class="revenue-pill rounded-pill px-4 py-2 d-flex align-items-center gap-2" th:if="${tongDoanhThu != null}">
+            <span class="small fw-semibold text-secondary">Tổng doanh thu:</span>
+            <span class="fs-6 fw-bold"
+                  th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+        </div>
     </div>
 
     <!-- Card nội dung chính -->
     <div class="card content-card border-0">
 
-        <!-- Thanh tìm kiếm & lọc trạng thái -->
+        <!-- Thanh tìm kiếm & lọc trạng thái (Bootstrap Grid) -->
         <form method="get" th:action="@{/hoadon/danhsach}" class="row g-2 align-items-center mb-4">
             <div class="col-md-6">
                 <input type="text" name="tuKhoa" th:value="${tuKhoa}" class="form-control py-2 rounded-3"
@@ -202,7 +195,7 @@
                     <th class="text-nowrap">Phòng</th>
                     <th class="text-nowrap">Khách hàng</th>
                     <th class="text-nowrap">Ngày lập</th>
-                    <th class="text-end text-nowrap">Giá phòng</th>
+                    <th class="text-end text-nowrap">Tiền phòng</th>
                     <th class="text-end text-nowrap">Tiền dịch vụ</th>
                     <th class="text-end text-nowrap">Tổng tiền</th>
                     <th class="text-center text-nowrap">Trạng thái</th>
@@ -215,21 +208,18 @@
                     <td class="text-nowrap">
                         <span class="badge rounded-3 px-2 py-1 fw-semibold"
                               style="background-color: #fff0f3; color: #ff5c77;"
-                              th:text="${hd.datPhong != null ? hd.datPhong.soPhong : 'N/A'}">101</span>
+                              th:text="${hd.datPhong != null ? hd.datPhong.soPhong : 'N/A'}">P101</span>
                     </td>
                     <td class="fw-semibold text-nowrap" style="color: #593945;"
                         th:text="${hd.datPhong != null and hd.datPhong.khachHang != null ? hd.datPhong.khachHang.hoTen : 'Khách lẻ'}">
                         Nguyễn Văn A
                     </td>
-                    <td class="text-nowrap">
-                        <span th:if="${hd.ngayLap != null}"
-                              th:text="${#temporals.format(hd.ngayLap, 'dd/MM/yyyy HH:mm')}">12/11/2026 21:00</span>
-                        <span th:if="${hd.ngayLap == null}" class="text-muted fst-italic">Chưa lập</span>
+                    <td class="text-nowrap"
+                        th:text="${hd.ngayLap != null ? #temporals.format(hd.ngayLap, 'dd/MM/yyyy HH:mm') : 'Chưa lập'}">
+                        12/11/2026 21:00
                     </td>
                     <td class="text-end text-nowrap"
-                        th:text="${#numbers.formatDecimal((mapGiaPhong != null and mapGiaPhong[hd.maHoaDon] != null) ? mapGiaPhong[hd.maHoaDon] : hd.tienPhong, 0, 'COMMA', 0, 'POINT')} + ' đ'">
-                        500,000 đ
-                    </td>
+                        th:text="${#numbers.formatDecimal(hd.tienPhong, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</td>
                     <td class="text-end text-nowrap"
                         th:text="${#numbers.formatDecimal(hd.tienDichVu, 0, 'COMMA', 0, 'POINT')} + ' đ'">150,000 đ</td>
                     <td class="text-end fw-bold text-nowrap" style="color: #ff758c;"
@@ -240,18 +230,9 @@
                               th:text="${hd.trangThai}">Đã thanh toán</span>
                     </td>
                     <td class="text-center text-nowrap">
-                        <!-- Chưa thanh toán -> Nút Thanh toán mở trang tính tiền Check-out -->
-                        <a th:if="${hd.trangThai == 'Chưa thanh toán' and hd.datPhong != null}"
-                           th:href="@{/hoadon/checkout/{soPhong}(soPhong=${hd.datPhong.soPhong})}"
-                           class="btn btn-sm btn-pink px-3">
-                            💳 Thanh toán
-                        </a>
-
-                        <!-- Đã thanh toán -> Nút Xem biên lai -->
-                        <a th:if="${hd.trangThai != 'Chưa thanh toán'}"
-                           th:href="@{/hoadon/chitiet/{id}(id=${hd.maHoaDon})}"
+                        <a th:href="@{/hoadon/chitiet/{id}(id=${hd.maHoaDon})}"
                            class="btn btn-sm btn-outline-pink px-3">
-                            🧾 Xem biên lai
+                            Xem biên lai
                         </a>
                     </td>
                 </tr>

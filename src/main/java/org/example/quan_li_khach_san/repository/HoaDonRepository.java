@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
+    // ===Tìm kiếm theo từ khóa (Mã HĐ dạng HD0001, Số phòng, Tên khách) & lọc trạng thái trực tiếp trên DB===
     @Query("""
         SELECT h FROM HoaDon h
         LEFT JOIN h.datPhong dp
@@ -24,36 +25,36 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
                OR LOWER(kh.hoTen) LIKE LOWER(CONCAT('%', :tuKhoa, '%')))
         ORDER BY h.maHoaDon ASC
     """)
+
     List<HoaDon> timKiemHoaDon(@Param("tuKhoa") String tuKhoa, @Param("trangThai") String trangThai);
 
+    // ==== Lấy danh sách hóa đơn theo trạng thái ====
     List<HoaDon> findByTrangThaiOrderByNgayLapDesc(String trangThai);
 
+    // 3. Kiểm tra hóa đơn theo mã đặt phòng (tránh xuất trùng hóa đơn)
     Optional<HoaDon> findByMaDatPhong(Long maDatPhong);
 
+    // ===Truy vấn hóa đơn theo số phòng====
     @Query("SELECT h FROM HoaDon h WHERE h.datPhong.soPhong = :soPhong ORDER BY h.ngayLap DESC")
     List<HoaDon> findBySoPhong(@Param("soPhong") String soPhong);
 
-    @Query("SELECT COALESCE(SUM(h.tienPhong + h.tienDichVu), 0) FROM HoaDon h WHERE h.trangThai = 'Đã thanh toán'")
+    // ===Tính tổng doanh thu các hóa đơn đã thanh toán (COALESCE tránh trả về null)===
+    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.trangThai = 'Đã thanh toán'")
     Double tinhTongDoanhThu();
 
+    // ===Thống kê doanh thu theo khoảng thời gian =====
     @Query("""
-        SELECT COALESCE(SUM(h.tienPhong + h.tienDichVu), 0) FROM HoaDon h
+        SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h
         WHERE h.trangThai = 'Đã thanh toán' AND h.ngayLap BETWEEN :tuNgay AND :denNgay
     """)
     Double tinhDoanhThuTheoThoiGian(@Param("tuNgay") LocalDateTime tuNgay,
                                     @Param("denNgay") LocalDateTime denNgay);
 
+    // === Đếm số hóa đơn theo trạng thái====
     long countByTrangThai(String trangThai);
 
-    @Query(value = """
-        SELECT COALESCE(SUM(s.thanh_tien), 0)
-        FROM su_dung_dich_vu s
-        INNER JOIN dat_phong dp ON LTRIM(RTRIM(s.so_phong)) = LTRIM(RTRIM(dp.so_phong))
-        INNER JOIN khach_hang kh ON dp.ma_khach_hang = kh.ma_khach_hang
-                                AND LTRIM(RTRIM(s.so_giay_to)) = LTRIM(RTRIM(kh.so_giay_to))
-        WHERE dp.ma_dat_phong = :maDatPhong
-          AND CAST(s.ngay_su_dung AS DATE) >= CAST(dp.ngay_nhan_phong AS DATE)
-          AND (dp.ngay_tra_phong IS NULL OR CAST(s.ngay_su_dung AS DATE) <= CAST(dp.ngay_tra_phong AS DATE))
-    """, nativeQuery = true)
+    // ==== Lấy tổng tiền dịch vụ phát sinh từ bảng dịch vụ  theo mã đặt phòng====
+
+    @Query(value = "SELECT COALESCE(SUM(thanh_tien), 0) FROM su_dung_dich_vu WHERE ma_dat_phong = :maDatPhong", nativeQuery = true)
     Double tinhTongTienDichVuTheoDatPhong(@Param("maDatPhong") Long maDatPhong);
 }
