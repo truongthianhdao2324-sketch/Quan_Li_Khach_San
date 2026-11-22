@@ -10,11 +10,7 @@ import jakarta.persistence.Table;
 public class Room {
 
     @Id
-<<<<<<< HEAD
     @Column(name = "so_phong", length = 20)
-=======
-    @Column(name = "so_phong")
->>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
     private String soPhong;
 
     @Column(name = "trang_thai")

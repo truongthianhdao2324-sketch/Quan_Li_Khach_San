@@ -148,22 +148,16 @@ public class KhachHangController {
         return "redirect:/khachhang/danhsach";
     }
 
-    // =========================================================================
-    // II. QUẢN LÝ PHÒNG KHÁCH SẠN (/khachhang/phong)
-    // =========================================================================
-
-    @GetMapping("/khachhang/phong")
-    public String danhSachPhong(@RequestParam(value = "trangThai", required = false) String trangThai,
-                                Model model) {
-        List<Room> dsPhong = roomRepository.findAll();
-        if (trangThai != null && !trangThai.trim().isEmpty()) {
-            dsPhong = dsPhong.stream()
-                    .filter(p -> trangThai.trim().equalsIgnoreCase(p.getTrangThai()))
-                    .collect(Collectors.toList());
-        }
-        model.addAttribute("danhSachPhong", dsPhong);
-        return "DanhSachPhong";
-    }
+//    // --- QUẢN LÝ PHÒNG ---
+//
+//    @GetMapping("/khachhang/phong")
+//    public String hienThiDanhSachPhong(HttpSession session, Model model) {
+//        TaiKhoan user = (TaiKhoan) session.getAttribute("user");
+//        if (user == null) return "redirect:/dang-nhap";
+//
+//        model.addAttribute("danhSachPhong", roomRepository.findAll());
+//        return "DanhSachPhong";
+//    }
 
     @GetMapping("/khachhang/phong/doi-trang-thai")
     public String doiTrangThaiPhong(@RequestParam("soPhong") String soPhong) {
