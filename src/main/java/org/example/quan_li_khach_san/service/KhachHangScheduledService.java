@@ -1,81 +1,87 @@
 package org.example.quan_li_khach_san.service;
 
+import org.example.quan_li_khach_san.entity.KhachHang;
+import org.example.quan_li_khach_san.repository.KhachHangRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class KhachHangScheduledService {
 
-    private static final Path LOG_FILE =
-            Paths.get("logs", "khach-hang-activity.log");
+    @Autowired
+    private KhachHangRepository khachHangRepository;
 
-    // Ghi lịch sử thao tác khách hàng vào file (đồng bộ luồng giống RoomLogService)
-    public synchronized void ghiLog(String maKH, String hoTen, String thaoTac,
-                                    String trangThaiCu, String trangThaiMoi,
-                                    String ketQua) {
+    private static final String LOG_FILE_PATH = "logs/khach_hang_scheduled.log";
+    private String lastExecutionSummary = "Chưa có lần quét định kỳ nào được ghi nhận.";
+
+    @Scheduled(fixedRate = 60000)
+    public synchronized void tuDongQuetVaGhiLogKhachHang() {
+        String threadName = Thread.currentThread().getName();
+        String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        List<KhachHang> danhSachKH = khachHangRepository.findAll();
+
+        long tongKhach = danhSachKH.size();
+        long dangHoatDong = danhSachKH.stream()
+                .filter(kh -> !"Đã hủy".equalsIgnoreCase(kh.getTrangThai()))
+                .count();
+        long daHuy = danhSachKH.stream()
+                .filter(kh -> "Đã hủy".equalsIgnoreCase(kh.getTrangThai()))
+                .count();
+
+        String logMessage = String.format(
+                "[%s] [Thread: %s] Quét định kỳ hồ sơ khách hàng -> Tổng: %d | Hoạt động: %d | Đã hủy: %d",
+                timeNow, threadName, tongKhach, dangHoatDong, daHuy
+        );
+
+        this.lastExecutionSummary = logMessage;
+        System.out.println(logMessage);
+        ghiLogRaFile(logMessage);
+    }
+
+    private void ghiLogRaFile(String noiDung) {
         try {
-            Files.createDirectories(LOG_FILE.getParent());
-
-            String tenHienThi = (hoTen == null || hoTen.isBlank()) ? "Chưa xác định" : hoTen.trim();
-
-            String dongLog = String.format(
-                    "%s | Luồng: %s | Khách hàng: %s (%s) | %s | %s -> %s | %s",
-                    LocalDateTime.now().format(
-                            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
-                    Thread.currentThread().getName(),
-                    maKH,
-                    tenHienThi,
-                    thaoTac,
-                    trangThaiCu,
-                    trangThaiMoi,
-                    ketQua
-            );
-
-            Files.writeString(
-                    LOG_FILE,
-                    dongLog + System.lineSeparator(),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND
-            );
-
-            System.out.println(dongLog);
-
+            File logFile = new File(LOG_FILE_PATH);
+            File parentDir = logFile.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true))) {
+                writer.write(noiDung);
+                writer.newLine();
+            }
         } catch (IOException e) {
-            System.err.println("Không thể ghi file log khách hàng: " + e.getMessage());
+            System.err.println("[LỖI GHI LOG FILE - TV1]: " + e.getMessage());
         }
     }
 
-    // Đọc 50 dòng log mới nhất
-    public List<String> docLog() {
-        try {
-            if (!Files.exists(LOG_FILE)) {
-                return Collections.emptyList();
-            }
+    public String getLastExecutionSummary() {
+        return lastExecutionSummary;
+    }
 
-            List<String> logs = Files.readAllLines(
-                    LOG_FILE, StandardCharsets.UTF_8);
-
-            Collections.reverse(logs);
-
-            return logs.stream()
-                    .limit(50)
-                    .collect(Collectors.toList());
-
-        } catch (IOException e) {
-            System.err.println("Không thể đọc file log khách hàng: " + e.getMessage());
-            return Collections.emptyList();
+    public List<String> docLichSuLogTuFile() {
+        List<String> lines = new ArrayList<>();
+        File logFile = new File(LOG_FILE_PATH);
+        if (!logFile.exists()) {
+            return lines;
         }
+        try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            lines.add("Lỗi đọc file log: " + e.getMessage());
+        }
+        Collections.reverse(lines);
+        return lines.size() > 10 ? lines.subList(0, 10) : lines;
     }
 }

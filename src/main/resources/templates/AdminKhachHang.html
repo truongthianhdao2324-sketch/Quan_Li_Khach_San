@@ -27,63 +27,7 @@
         .table-hotel tbody tr:last-child td { border-bottom: none; }
         .table-hotel tbody tr:hover { background-color: #fffafb; }
         .form-control:focus, .form-select:focus { border-color: #ff758c; box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2); }
-
-        /* --- NHẬT KÝ HOẠT ĐỘNG (ĐỒNG BỘ GIAO DIỆN NGƯỜI 2) --- */
-        .activity-log {
-            margin-top: 25px;
-            padding: 20px;
-            background: white;
-            border: 1px solid #f5dfe4;
-            border-radius: 15px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        .activity-log-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-
-        .activity-log-header h3 {
-            margin: 0;
-            color: #593945;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .activity-log-header span {
-            color: #9b8490;
-            font-size: 12px;
-        }
-
-        .activity-log-content {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .activity-log-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .activity-log-table th,
-        .activity-log-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #fae1dd;
-            font-size: 13px;
-        }
-
-        .activity-log-table th {
-            background: #fff0f3;
-            color: #593945;
-            font-weight: 700;
-        }
-
-        .activity-log-table td {
-            color: #6b4c58;
-        }
+        .log-box { background-color: #2b2124; color: #ffb3c6; font-family: Consolas, monospace; font-size: 0.85rem; border-radius: 12px; padding: 14px 18px; max-height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body class="d-flex vh-100 overflow-hidden m-0 p-0">
@@ -93,18 +37,21 @@
     <nav class="nav flex-column flex-grow-1">
         <a class="nav-link d-flex align-items-center" th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
         <a class="nav-link d-flex align-items-center" th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
-        <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
         <a class="nav-link active d-flex align-items-center" th:href="@{/admin/khachhang/danhsach}">🧑‍🤝‍🧑 Quản lý Khách hàng</a>
-        <a class="nav-link d-flex align-items-center" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
         <a class="nav-link d-flex align-items-center" th:href="@{/admin/hoadon}">🧾 Quản lý Hóa Đơn</a>
         <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-nhap}">Đăng xuất</a>
     </nav>
 </aside>
 
 <main class="main-content flex-grow-1 overflow-auto">
-    <div class="mb-4">
-        <h1 class="fw-bold page-title m-0">Tra Cứu & Giám Sát Hồ Sơ Khách Hàng</h1>
-        <small class="text-muted">Chế độ Quản trị viên: Tìm kiếm, lọc trạng thái, kiểm tra tài khoản & lý do hủy hồ sơ</small>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="fw-bold page-title m-0">Tra Cứu & Giám Sát Hồ Sơ Khách Hàng</h1>
+            <small class="text-muted">Chế độ Quản trị viên: Tìm kiếm, lọc trạng thái, kiểm tra tài khoản & lý do hủy hồ sơ</small>
+        </div>
+        <button type="button" class="btn btn-outline-pink px-3 py-2" onclick="kiemTraDongBoLuong()">
+            <i class="fa-solid fa-rotate me-1"></i>Chạy quét & Ghi log ngay
+        </button>
     </div>
 
     <!-- 3 THẺ THỐNG KÊ -->
@@ -128,6 +75,8 @@
             </div>
         </div>
     </div>
+
+    <div id="thread-alert-box" class="alert alert-light border border-danger-subtle d-none mt-3 mb-0 rounded-3"></div>
 
     <!-- BẢNG TRA CỨU KHÁCH HÀNG -->
     <div class="card content-card border-0">
@@ -208,29 +157,19 @@
         </div>
     </div>
 
-    <!-- NHẬT KÝ HOẠT ĐỘNG (GIAO DIỆN GIỐNG NGƯỜI 2) -->
-    <div class="activity-log">
-        <div class="activity-log-header">
-            <h3>🕒 NHẬT KÝ HOẠT ĐỘNG</h3>
-            <span>Ghi nhận thay đổi hồ sơ khách hàng</span>
+    <!-- GIÁM SÁT NHẬT KÝ LUỒNG @SCHEDULED -->
+    <div class="card content-card border-0">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0" style="color: #593945;">
+                <i class="fa-solid fa-microchip me-2" style="color: #ff758c;"></i>Nhật ký Tác vụ Nền Định kỳ (@Scheduled - File: logs/khach_hang_scheduled.log)
+            </h6>
+            <span class="badge bg-light text-dark border">Tự động quét mỗi 60 giây</span>
         </div>
-
-        <div class="activity-log-content">
-            <table class="activity-log-table">
-                <thead>
-                <tr>
-                    <th>Nội dung nhật ký</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${#lists.isEmpty(nhatKyKhachHang)}">
-                    <td>Chưa có lịch sử xử lý khách hàng.</td>
-                </tr>
-                <tr th:each="log : ${nhatKyKhachHang}">
-                    <td th:text="${log}"></td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="log-box" id="admin-log-viewer">
+            <div th:each="line : ${logList}" th:text="${line}"></div>
+            <div th:if="${#lists.isEmpty(logList)}" class="text-white-50">
+                Đang chờ luồng scheduling-1 ghi dữ liệu... (Hoặc bấm nút "Chạy quét & Ghi log ngay" ở góc trên)
+            </div>
         </div>
     </div>
 </main>
@@ -298,6 +237,28 @@
                     lyDoBox.classList.add('d-none');
                 }
                 new bootstrap.Modal(document.getElementById('modalChiTietKH')).show();
+            });
+    }
+
+    function kiemTraDongBoLuong() {
+        fetch('/admin/khachhang/api/dongbo-luong')
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('thread-alert-box');
+                box.classList.remove('d-none');
+                box.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong style="color:#ff758c;">⚡ ${data.message}</strong><br>
+                            <code>${data.logDetail}</code>
+                        </div>
+                        <button type="button" class="btn-close" onclick="this.parentElement.parentElement.classList.add('d-none')"></button>
+                    </div>
+                `;
+                const logViewer = document.getElementById('admin-log-viewer');
+                if (logViewer && data.logs) {
+                    logViewer.innerHTML = data.logs.map(line => `<div>${line}</div>`).join('');
+                }
             });
     }
 </script>

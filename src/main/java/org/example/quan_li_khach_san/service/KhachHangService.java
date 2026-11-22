@@ -1,18 +1,14 @@
 package org.example.quan_li_khach_san.service;
 
-import jakarta.annotation.PostConstruct;
 import org.example.quan_li_khach_san.entity.KhachHang;
 import org.example.quan_li_khach_san.repository.KhachHangRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,81 +17,11 @@ public class KhachHangService {
     @Autowired
     private KhachHangRepository khachHangRepository;
 
-    @Autowired
-    private KhachHangScheduledService khachHangLogService;
-
-    private static final String CANCEL_STORE_PATH = "logs/khach_hang_huy.txt";
-    // Key: maKhachHang | Value: [nguoiHuy, lyDoHuy]
-    private final Map<Long, String[]> duLieuHuyMap = new ConcurrentHashMap<>();
-
-    @PostConstruct
-    public void napDuLieuHuyTuFile() {
-        File file = new File(CANCEL_STORE_PATH);
-        if (!file.exists()) return;
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|", 3);
-                if (parts.length == 3) {
-                    duLieuHuyMap.put(Long.parseLong(parts[0]), new String[]{parts[1], parts[2]});
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[CẢNH BÁO ĐỌC TRẠNG THÁI HỦY KH]: " + e.getMessage());
-        }
-    }
-
-    private synchronized void luuDuLieuHuyRaFile() {
-        try {
-            File file = new File(CANCEL_STORE_PATH);
-            if (file.getParentFile() != null && !file.getParentFile().exists()) {
-                file.getParentFile().mkdirs();
-            }
-            try (BufferedWriter bw = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
-                for (Map.Entry<Long, String[]> entry : duLieuHuyMap.entrySet()) {
-                    String nguoiHuy = entry.getValue()[0].replace("|", "/").replace("\n", " ");
-                    String lyDo = entry.getValue()[1].replace("|", "/").replace("\n", " ");
-                    bw.write(entry.getKey() + "|" + nguoiHuy + "|" + lyDo);
-                    bw.newLine();
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("[LỖI LƯU TRẠNG THÁI HỦY KH]: " + e.getMessage());
-        }
-    }
-
-    public KhachHang apDungTrangThaiHuy(KhachHang kh) {
-        if (kh == null) return null;
-        String[] info = (kh.getMaKhachHang() != null) ? duLieuHuyMap.get(kh.getMaKhachHang()) : null;
-        if (info != null) {
-            kh.setTrangThai("Đã hủy");
-            kh.setNguoiHuy(info[0]);
-            kh.setLyDoHuy(info[1]);
-        } else {
-            kh.setTrangThai("Hoạt động");
-            kh.setNguoiHuy(null);
-            kh.setLyDoHuy(null);
-        }
-        return kh;
-    }
-
-    public List<KhachHang> layTatCaKhachHang() {
-        return khachHangRepository.findAll().stream()
-                .map(this::apDungTrangThaiHuy)
-                .collect(Collectors.toList());
-    }
-
-    public KhachHang timKhachHangTheoId(Long id) {
-        KhachHang kh = khachHangRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khách hàng có mã: " + id));
-        return apDungTrangThaiHuy(kh);
-    }
-
-    // 1. Tìm kiếm & Lọc theo trạng thái
+    // 1. Tìm kiếm theo từ khóa (Tên / SĐT / CCCD) + Lọc theo trạng thái (Hoạt động / Đã hủy)
     public List<KhachHang> timKiemVaLocKhachHang(String keyword, String trangThai) {
-        return layTatCaKhachHang().stream()
+        List<KhachHang> tatCa = khachHangRepository.findAll();
+
+        return tatCa.stream()
                 .filter(kh -> {
                     if (keyword == null || keyword.trim().isEmpty()) return true;
                     String tk = keyword.trim().toLowerCase();
@@ -107,15 +33,17 @@ public class KhachHangService {
                     if (trangThai == null || trangThai.trim().isEmpty() || "ALL".equalsIgnoreCase(trangThai)) {
                         return true;
                     }
-                    return kh.getTrangThai().equalsIgnoreCase(trangThai.trim());
+                    String ttHienTai = kh.getTrangThai();
+                    return ttHienTai.equalsIgnoreCase(trangThai.trim());
                 })
                 .sorted(Comparator.comparing(KhachHang::getMaKhachHang))
                 .collect(Collectors.toList());
     }
 
-    // 2. Lấy chi tiết 1 khách hàng
+    // 2. Lấy chi tiết 1 khách hàng (bao gồm trạng thái, lý do hủy & tài khoản hủy)
     public Map<String, Object> layChiTietKhachHang(Long maKhachHang) {
-        KhachHang kh = timKhachHangTheoId(maKhachHang);
+        KhachHang kh = khachHangRepository.findById(maKhachHang)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khách hàng có mã: " + maKhachHang));
 
         Map<String, Object> hoSo = new LinkedHashMap<>();
         hoSo.put("maKhachHang", kh.getMaKhachHang());
@@ -135,24 +63,13 @@ public class KhachHangService {
     // 3. Thêm mới / Cập nhật thông tin khách hàng
     @Transactional
     public synchronized void luuHoacCapNhatKhachHang(KhachHang khachHang) {
-        boolean laThemMoi = (khachHang.getMaKhachHang() == null);
-        String thaoTac = laThemMoi ? "THEM_KHACH_HANG" : "CAP_NHAT_KHACH_HANG";
-        String maHienThi = laThemMoi ? "Mới" : String.format("KH%04d", khachHang.getMaKhachHang());
-        String trangThaiCu = laThemMoi ? "Chưa có" : "Hoạt động";
-
         if (khachHang.getHoTen() == null || khachHang.getHoTen().trim().isEmpty()) {
-            khachHangLogService.ghiLog(maHienThi, khachHang.getHoTen(), thaoTac,
-                    trangThaiCu, trangThaiCu, "Thất bại - Họ tên khách hàng trống");
             throw new IllegalArgumentException("Họ tên khách hàng không được để trống!");
         }
         if (khachHang.getSoGiayTo() == null || !khachHang.getSoGiayTo().trim().matches("\\d{9}|\\d{12}")) {
-            khachHangLogService.ghiLog(maHienThi, khachHang.getHoTen(), thaoTac,
-                    trangThaiCu, trangThaiCu, "Thất bại - Số CCCD/CMND không hợp lệ");
             throw new IllegalArgumentException("Số CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số!");
         }
         if (khachHang.getSoDienThoai() == null || !khachHang.getSoDienThoai().trim().matches("^0\\d{9}$")) {
-            khachHangLogService.ghiLog(maHienThi, khachHang.getHoTen(), thaoTac,
-                    trangThaiCu, trangThaiCu, "Thất bại - Số điện thoại không hợp lệ");
             throw new IllegalArgumentException("Số điện thoại phải bắt đầu bằng số 0 và có đủ 10 chữ số!");
         }
 
@@ -161,65 +78,47 @@ public class KhachHangService {
                         && existing.getSoGiayTo().equalsIgnoreCase(khachHang.getSoGiayTo().trim())
                         && !Objects.equals(existing.getMaKhachHang(), khachHang.getMaKhachHang()));
         if (biTrungGiayTo) {
-            khachHangLogService.ghiLog(maHienThi, khachHang.getHoTen(), thaoTac,
-                    trangThaiCu, trangThaiCu, "Thất bại - Trùng số giấy tờ " + khachHang.getSoGiayTo().trim());
             throw new IllegalArgumentException("Số giấy tờ " + khachHang.getSoGiayTo() + " đã tồn tại trong hệ thống!");
         }
 
-        if (!laThemMoi) {
+        if (khachHang.getMaKhachHang() != null) {
             KhachHang cu = khachHangRepository.findById(khachHang.getMaKhachHang())
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khách hàng cần cập nhật!"));
-            khachHang.setSoPhong(cu.getSoPhong());
+            khachHang.setTrangThai(cu.getTrangThai());
+            khachHang.setLyDoHuy(cu.getLyDoHuy());
+            khachHang.setNguoiHuy(cu.getNguoiHuy());
+        } else {
+            khachHang.setTrangThai("Hoạt động");
+            khachHang.setLyDoHuy(null);
+            khachHang.setNguoiHuy(null);
         }
 
         khachHang.setHoTen(khachHang.getHoTen().trim());
         khachHang.setSoGiayTo(khachHang.getSoGiayTo().trim());
         khachHang.setSoDienThoai(khachHang.getSoDienThoai().trim());
-
-        KhachHang daLuu = khachHangRepository.save(khachHang);
-
-        khachHangLogService.ghiLog(
-                String.format("KH%04d", daLuu.getMaKhachHang()),
-                daLuu.getHoTen(),
-                thaoTac,
-                trangThaiCu,
-                "Hoạt động",
-                "Thành công"
-        );
+        khachHangRepository.save(khachHang);
     }
 
-    // 4. Hủy hồ sơ khách hàng
+    // 4. Hủy hồ sơ khách hàng (Lưu lý do hủy + tên đăng nhập tài khoản thực hiện hủy)
+    @Transactional
     public synchronized void huyKhachHang(Long maKhachHang, String lyDoHuy, String tenDangNhapHuy) {
-        KhachHang kh = timKhachHangTheoId(maKhachHang);
-        String maHienThi = String.format("KH%04d", kh.getMaKhachHang());
-        String trangThaiCu = kh.getTrangThai();
-
         if (lyDoHuy == null || lyDoHuy.trim().isEmpty()) {
-            khachHangLogService.ghiLog(maHienThi, kh.getHoTen(), "HUY_HO_SO",
-                    trangThaiCu, trangThaiCu, "Thất bại - Thiếu lý do hủy hồ sơ");
             throw new IllegalArgumentException("Vui lòng nhập lý do hủy hồ sơ khách hàng!");
         }
 
-        if ("Đã hủy".equalsIgnoreCase(trangThaiCu)) {
-            khachHangLogService.ghiLog(maHienThi, kh.getHoTen(), "HUY_HO_SO",
-                    trangThaiCu, trangThaiCu, "Thất bại - Hồ sơ đã hủy trước đó");
+        KhachHang kh = khachHangRepository.findById(maKhachHang)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khách hàng có mã: " + maKhachHang));
+
+        if ("Đã hủy".equalsIgnoreCase(kh.getTrangThai())) {
             throw new IllegalStateException("Hồ sơ khách hàng này đã ở trạng thái Đã hủy trước đó!");
         }
 
         String taiKhoan = (tenDangNhapHuy != null && !tenDangNhapHuy.isBlank()) ? tenDangNhapHuy.trim() : "letan";
         String thoiGianHuy = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        String lyDoDayDu = lyDoHuy.trim() + " (Hủy lúc: " + thoiGianHuy + ")";
 
-        duLieuHuyMap.put(maKhachHang, new String[]{taiKhoan, lyDoDayDu});
-        luuDuLieuHuyRaFile();
-
-        khachHangLogService.ghiLog(
-                maHienThi,
-                kh.getHoTen(),
-                "HUY_HO_SO (Bởi: " + taiKhoan + ")",
-                trangThaiCu,
-                "Đã hủy",
-                "Thành công"
-        );
+        kh.setTrangThai("Đã hủy");
+        kh.setLyDoHuy(lyDoHuy.trim() + " (Hủy lúc: " + thoiGianHuy + ")");
+        kh.setNguoiHuy(taiKhoan);
+        khachHangRepository.save(kh);
     }
 }
