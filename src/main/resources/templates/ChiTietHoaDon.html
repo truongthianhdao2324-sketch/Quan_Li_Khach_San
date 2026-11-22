@@ -127,15 +127,15 @@
                     <span th:if="${hoaDon.datPhong != null and hoaDon.datPhong.ngayNhanPhong != null}">
                         <span th:text="${#temporals.format(hoaDon.datPhong.ngayNhanPhong, 'dd/MM/yyyy')}">08/10/2026</span>
                         -
-                        <span th:text="${hoaDon.datPhong.ngayTraPhong != null ? #temporals.format(hoaDon.datPhong.ngayTraPhong, 'dd/MM/yyyy') : (hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy') : '---')}">09/10/2026</span>
+                        <span th:text="${hoaDon.datPhong.ngayTraPhong != null ? #temporals.format(hoaDon.datPhong.ngayTraPhong, 'dd/MM/yyyy') : (hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy') : '---')}">19/11/2026</span>
                     </span>
                     <span th:if="${hoaDon.datPhong == null or hoaDon.datPhong.ngayNhanPhong == null}"
-                          th:text="${hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy HH:mm') : '---'}">09/10/2026</span>
+                          th:text="${hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy HH:mm') : '---'}">19/11/2026</span>
                 </div>
             </div>
             <div class="col-4 text-end">
                 <span class="fw-bold">Ngày / Date:</span><br>
-                <span th:text="${hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy') : '---'}">09/10/2026</span>
+                <span th:text="${hoaDon.ngayLap != null ? #temporals.format(hoaDon.ngayLap, 'dd/MM/yyyy') : '---'}">19/11/2026</span>
             </div>
         </div>
 
@@ -155,16 +155,18 @@
                 <tr>
                     <td class="text-center py-2">1</td>
                     <td class="py-2">Tiền thuê phòng (Room <span th:text="${hoaDon.datPhong != null ? hoaDon.datPhong.soPhong : ''}">502</span>)</td>
-                    <td class="text-center py-2">1</td>
-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                    <td class="text-center py-2" th:text="${soNgayO != null ? soNgayO : 1}">1</td>
+                    <td class="text-end py-2 text-nowrap"
+                        th:text="${#numbers.formatDecimal(donGiaPhong != null ? donGiaPhong : hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">700.000 đ</td>
+                    <td class="text-end py-2 text-nowrap"
+                        th:text="${#numbers.formatDecimal(hoaDon.tienPhong, 0, 'POINT', 0, 'COMMA')} + ' đ'">33.600.000 đ</td>
                 </tr>
                 <tr>
                     <td class="text-center py-2">2</td>
                     <td class="py-2">Dịch vụ phát sinh (Extra Services)</td>
                     <td class="text-center py-2">1</td>
-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
-                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">0 đ</td>
+                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">285.000 đ</td>
+                    <td class="text-end py-2 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tienDichVu, 0, 'POINT', 0, 'COMMA')} + ' đ'">285.000 đ</td>
                 </tr>
                 </tbody>
             </table>
@@ -176,7 +178,7 @@
                 <table class="table table-sm table-borderless text-xs receipt-table mb-1">
                     <tr>
                         <td class="text-secondary py-0">Tạm tính / Subtotal:</td>
-                        <td class="text-end fw-medium py-0 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                        <td class="text-end fw-medium py-0 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">33.885.000 đ</td>
                     </tr>
                     <tr>
                         <td class="text-secondary py-1">Thuế VAT (đã gồm) / Tax:</td>
@@ -184,7 +186,7 @@
                     </tr>
                     <tr class="border-top border-dark">
                         <td class="fw-bold fs-6 pt-1 text-nowrap">Tổng cộng / Total:</td>
-                        <td class="text-end fw-bold fs-6 pt-1 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">5.000.000 đ</td>
+                        <td class="text-end fw-bold fs-6 pt-1 text-nowrap" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'POINT', 0, 'COMMA')} + ' đ'">33.885.000 đ</td>
                     </tr>
                 </table>
             </div>
@@ -202,7 +204,7 @@
                 <div style="height: 54px;"></div>
                 <div class="border-top border-secondary w-75 mx-auto pt-1 fw-bold text-xs"
                      th:text="${hoaDon.datPhong != null and hoaDon.datPhong.khachHang != null ? hoaDon.datPhong.khachHang.hoTen : ''}">
-                    Bùi Tuyết Nhi
+                    Trần Thị Mai
                 </div>
             </div>
 

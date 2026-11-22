@@ -1,37 +1,28 @@
 package org.example.quan_li_khach_san.controller;
 
-<<<<<<< HEAD
+import jakarta.servlet.http.HttpSession;
+import org.example.quan_li_khach_san.entity.HoaDon;
+import org.example.quan_li_khach_san.entity.TaiKhoan;
 import org.example.quan_li_khach_san.repository.DatPhongRepository;
 import org.example.quan_li_khach_san.repository.HoaDonRepository;
 import org.example.quan_li_khach_san.repository.KhachHangRepository;
 import org.example.quan_li_khach_san.repository.RoomRepository;
-=======
-import org.example.quan_li_khach_san.repository.KhachHangRepository;
->>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-<<<<<<< HEAD
-import jakarta.servlet.http.HttpSession;
-import org.example.quan_li_khach_san.entity.TaiKhoan;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-=======
->>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
 @Controller
 public class ThongKeController {
 
     @Autowired
     private KhachHangRepository khachHangRepository;
 
-<<<<<<< HEAD
     @Autowired
     private RoomRepository roomRepository;
 
@@ -104,30 +95,42 @@ public class ThongKeController {
             }
         }
 
-        // 3. Doanh thu & hóa đơn
+        // 3. Tính tổng doanh thu & doanh thu tháng này bằng code Java từ danh sách hóa đơn đã thanh toán
         try {
-            Double tongDoanhThuDb = hoaDonRepository.tinhTongDoanhThu();
-            tongDoanhThu = tongDoanhThuDb != null ? tongDoanhThuDb : 0.0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
+            List<HoaDon> dsHoaDon = hoaDonRepository.findAll();
             LocalDate today = LocalDate.now();
             LocalDateTime dauThang = today.withDayOfMonth(1).atStartOfDay();
             LocalDateTime cuoiThang = today.withDayOfMonth(today.lengthOfMonth()).atTime(LocalTime.MAX);
-            Double doanhThuThangDb = hoaDonRepository.tinhDoanhThuTheoThoiGian(dauThang, cuoiThang);
-            doanhThuThangNay = doanhThuThangDb != null ? doanhThuThangDb : 0.0;
+
+            double tongJava = 0.0;
+            double thangJava = 0.0;
+            long daThanhToanJava = 0L;
+
+            if (dsHoaDon != null) {
+                for (HoaDon hd : dsHoaDon) {
+                    if (hd == null) continue;
+                    if (!"Đã thanh toán".equalsIgnoreCase(hd.getTrangThai())) continue;
+
+                    daThanhToanJava++;
+                    double tien = (hd.getTongTien() != null) ? Math.max(0.0, hd.getTongTien()) : 0.0;
+                    tongJava += tien;
+
+                    if (hd.getNgayLap() != null
+                            && !hd.getNgayLap().isBefore(dauThang)
+                            && !hd.getNgayLap().isAfter(cuoiThang)) {
+                        thangJava += tien;
+                    }
+                }
+            }
+
+            tongDoanhThu = tongJava;
+            doanhThuThangNay = thangJava;
+            hoaDonDaThanhToan = daThanhToanJava;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        try {
-            hoaDonDaThanhToan = hoaDonRepository.countByTrangThai("Đã thanh toán");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        // Đẩy toàn bộ dữ liệu thống kê vào Model cho Thymeleaf
         model.addAttribute("tongLuongKhach", tongLuongKhach);
         model.addAttribute("tongLuotDatPhong", tongLuotDatPhong);
         model.addAttribute("tongSoPhong", tongSoPhong);
@@ -141,7 +144,7 @@ public class ThongKeController {
 
     @GetMapping({"/admin/dashboard", "/admin/thong-ke"})
     public String hienThiAdminDashboard(HttpSession session, Model model) {
-        TaiKhoan user = (TaiKhoan) session.getAttribute("user");
+        TaiKhoan user = (session != null) ? (TaiKhoan) session.getAttribute("user") : null;
         if (user == null) {
             return "redirect:/dang-nhap";
         }
@@ -150,19 +153,6 @@ public class ThongKeController {
             return "redirect:/dang-nhap";
         }
         napDuLieuThongKe(model);
-=======
-    @GetMapping("/admin/thong-ke")
-    public String hienThiDashboard(Model model) {
-        // Lấy số lượng khách thực tế từ hệ thống của Thành viên 1
-        long tongLuongKhach = khachHangRepository.count();
-        model.addAttribute("tongLuongKhach", tongLuongKhach);
-
-        // Doanh thu (có thể lấy từ repository hóa đơn của TV4 hoặc tạm gán số liệu)
-        double tongDoanhThu = 48500000;
-        model.addAttribute("tongDoanhThu", tongDoanhThu);
-
-        // Tên file HTML trùng khớp với file sẵn có trong thư mục templates của bạn
->>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
         return "AdminDashboard";
     }
 }

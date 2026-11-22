@@ -29,14 +29,17 @@ public class KhachHang {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "trang_thai")
+    @Column(name = "so_phong")
+    private String soPhong;
+
+    // @Transient: Không ánh xạ xuống MySQL để giữ nguyên bảng khach_hang gốc
+    @Transient
     private String trangThai = "Hoạt động";
 
-    @Column(name = "ly_do_huy", length = 500)
+    @Transient
     private String lyDoHuy;
 
-    // Lưu tên đăng nhập (ten_dang_nhap) của tài khoản thực hiện hủy
-    @Column(name = "nguoi_huy", length = 50)
+    @Transient
     private String nguoiHuy;
 
     public KhachHang() {}
@@ -46,8 +49,6 @@ public class KhachHang {
         return String.format("KH%04d", maKhachHang);
     }
 
-    // Getters và Setters
->>>>>>> 6026e3ee81e4d8efd379d4baf1aa115026e76d3e
     public Long getMaKhachHang() { return maKhachHang; }
     public void setMaKhachHang(Long maKhachHang) { this.maKhachHang = maKhachHang; }
 
@@ -68,6 +69,9 @@ public class KhachHang {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getSoPhong() { return soPhong; }
+    public void setSoPhong(String soPhong) { this.soPhong = soPhong; }
 
     public String getTrangThai() {
         return (trangThai == null || trangThai.isBlank()) ? "Hoạt động" : trangThai;

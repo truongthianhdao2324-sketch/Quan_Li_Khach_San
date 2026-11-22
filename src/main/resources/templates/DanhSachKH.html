@@ -24,6 +24,20 @@
         .table-hotel tbody tr:last-child td { border-bottom: none; }
         .table-hotel tbody tr:hover { background-color: #fffafb; }
         .form-control:focus, .form-select:focus { border-color: #ff758c; box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2); }
+        /* NÚT ĐĂNG XUẤT */
+        .nut-dang-xuat{
+            margin-top: auto;
+            color: #ff4d6d;
+        }
+        .sidebar a.nut-dang-xuat {
+            margin-top: auto;
+            color: #ff4d6d;
+        }
+
+        .sidebar a.nut-dang-xuat:hover {
+            color: white;
+            background-color: #ff758c;
+        }
     </style>
 </head>
 <body class="d-flex vh-100 overflow-hidden m-0 p-0">
@@ -34,24 +48,19 @@
         <a class="nav-link d-flex align-items-center" th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
         <a class="nav-link active d-flex align-items-center" th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
         <a class="nav-link d-flex align-items-center" th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/checkin}">🛎️ Nhận phòng (Check-in)</a>
+        <a class="nav-link d-flex align-items-center" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
         <a class="nav-link d-flex align-items-center" th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
-        <a class="nav-link d-flex align-items-center mt-auto mb-0" style="color: #ff4d6d;" th:href="@{/dang-nhap}">Đăng xuất</a>
+        <a class="nav-link d-flex align-items-center mt-auto mb-0 nut-dang-xuat" th:href="@{/dang-nhap}">Đăng xuất</a>
     </nav>
 </aside>
 
-    <a th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
-    <a th:href="@{/khachhang/danhsach}" class="active">👥 Quản lý Khách hàng</a>
-    <a th:href="@{/khachhang/phong}"> 🛏️ Quản lý Phòng</a>
-     <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
-    <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
-    <a th:href="@{/dang-xuat}" style="margin-top: auto; color: #ff4d6d;"> Đăng xuất</a>
-</div>
-
-<!-- KHUNG NỘI DUNG CHÍNH -->
-<div class="main-content">
-
-    <div class="header-title">
-        <h1>Danh Sách Khách Hàng Lưu Trú</h1>
+<main class="main-content flex-grow-1 overflow-auto">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <h1 class="fw-bold page-title m-0">Quản Lý Hồ Sơ Khách Hàng</h1>
+        <a th:href="@{/khachhang/them}" class="btn btn-pink px-3 py-2">
+            <i class="fa-solid fa-user-plus me-1"></i>Thêm Khách Hàng Mới
+        </a>
     </div>
 
     <div th:if="${success}" class="alert alert-success alert-dismissible fade show rounded-3 mt-3 mb-0" role="alert">

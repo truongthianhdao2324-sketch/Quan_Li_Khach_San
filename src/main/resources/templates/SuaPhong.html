@@ -125,18 +125,38 @@
             margin-left: 10px;
             display: inline-block;
         }
+
+        /* NÚT ĐĂNG XUẤT */
+        .nut-dang-xuat{
+            margin-top: auto;
+            color: #ff4d6d;
+        }
+        .sidebar a.nut-dang-xuat {
+            margin-top: auto;
+            color: #ff4d6d;
+        }
+
+        .sidebar a.nut-dang-xuat:hover {
+            color: white;
+            background-color: #ff758c;
+        }
+
     </style>
 </head>
 
 <body>
 
 <div class="sidebar">
-    <h2>🌸 KÊNH LỄ TÂN</h2>
-    <a th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
-    <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+    <h2>👑 QUẢN TRỊ VIÊN</h2>
+
+    <a th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
+    <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
     <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
-    <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
-    <a th:href="@{/dang-nhap}" style="margin-top: auto; color: #ff4d6d;">Đăng xuất</a>
+    <a th:href="@{/admin/khachhang/danhsach}">🧑‍🤝‍🧑 Quản lý Khách hàng</a>
+    <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+    <a th:href="@{/admin/hoadon}">🧾 Quản lý Hóa Đơn</a>
+
+    <a th:href="@{/dang-nhap}" class="nut-dang-xuat">Đăng xuất</a>
 </div>
 
 <div class="main-content">
@@ -153,21 +173,41 @@
                 <input type="text" th:field="*{soPhong}" readonly>
             </div>
 
+<!--            <div class="form-group">-->
+<!--                <label>Giá Phòng (VNĐ)</label>-->
+
+<!--                <input type="hidden" th:field="*{giaPhong}" id="giaPhong">-->
+
+<!--                <input type="text"-->
+<!--                       id="giaPhongHienThi"-->
+<!--                       inputmode="numeric"-->
+<!--                       placeholder="Nhập giá phòng (Tối thiểu 100,000 VNĐ)"-->
+<!--                       autocomplete="off"-->
+<!--                       required>-->
+
+<!--                <div class="error" th:if="${#fields.hasErrors('giaPhong')}"-->
+<!--                     th:errors="*{giaPhong}"></div>-->
+<!--            </div>-->
+
+
             <div class="form-group">
                 <label>Giá Phòng (VNĐ)</label>
 
-                <input type="hidden" th:field="*{giaPhong}" id="giaPhong">
-
                 <input type="text"
                        id="giaPhongHienThi"
-                       inputmode="numeric"
+                       th:value="${room.giaPhong}"
                        placeholder="Nhập giá phòng (Tối thiểu 100,000 VNĐ)"
-                       autocomplete="off"
                        required>
 
-                <div class="error" th:if="${#fields.hasErrors('giaPhong')}"
-                     th:errors="*{giaPhong}"></div>
+                <input type="hidden" th:field="*{giaPhong}" id="giaPhong">
+
+                <div class="error"
+                     th:if="${#fields.hasErrors('giaPhong')}"
+                     th:errors="*{giaPhong}">
+                </div>
             </div>
+
+
 
             <div class="form-group">
                 <label>Loại Phòng</label>
@@ -190,12 +230,23 @@
     </div>
 </div>
 
+
 <script>
-    const giaPhong = document.getElementById("giaPhong");
     const giaPhongHienThi = document.getElementById("giaPhongHienThi");
+    const giaPhong = document.getElementById("giaPhong");
+
+    function layGiaPhong(value) {
+        const so = Number(value);
+
+        if (Number.isFinite(so)) {
+            return String(Math.round(so));
+        }
+
+        return value.replace(/\D/g, "");
+    }
 
     function dinhDangGia(value) {
-        let so = value.replace(/\D/g, "");
+        const so = layGiaPhong(value);
 
         if (so === "") {
             return "";
@@ -204,32 +255,18 @@
         return Number(so).toLocaleString("en-US");
     }
 
-    // Hiển thị giá ban đầu
-    if (giaPhong.value && Number(giaPhong.value) > 0) {
-        giaPhongHienThi.value = dinhDangGia(giaPhong.value);
-    }
+    // Lấy giá trị ban đầu, xử lý số thập phân trước khi định dạng
+    giaPhong.value = layGiaPhong(giaPhong.value);
+    giaPhongHienThi.value = dinhDangGia(giaPhong.value);
 
-    // Tự động thêm dấu phẩy khi nhập
     giaPhongHienThi.addEventListener("input", function () {
-        let giaTri = this.value.replace(/\D/g, "");
+        const so = this.value.replace(/\D/g, "");
 
-        this.value = dinhDangGia(giaTri);
-        giaPhong.value = giaTri;
-    });
-
-    // Không cho gửi form nếu giá chưa hợp lệ
-    giaPhongHienThi.addEventListener("input", function () {
-        giaPhongHienThi.setCustomValidity(
-            giaPhong.value !== "" && Number(giaPhong.value) >= 100000
-                ? ""
-                : "Giá phòng phải ít nhất là 100.000 VNĐ"
-        );
-    });
-
-    giaPhongHienThi.addEventListener("invalid", function () {
-        this.setCustomValidity("Giá phòng phải ít nhất là 100.000 VNĐ");
+        giaPhong.value = so;
+        this.value = so === "" ? "" : Number(so).toLocaleString("en-US");
     });
 </script>
+
 
 </body>
 </html>

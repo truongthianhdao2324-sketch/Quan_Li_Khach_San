@@ -12,10 +12,6 @@ public class SuDungDichVu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_dat_phong")
-    private DatPhong datPhong;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ma_dich_vu")
     private DichVu dichVu;
@@ -32,8 +28,6 @@ public class SuDungDichVu {
     private LocalDateTime ngaySuDung;
 
     public Long getId() { return id; }
-    public DatPhong getDatPhong() { return datPhong; }
-    public void setDatPhong(DatPhong value) { datPhong = value; }
     public DichVu getDichVu() { return dichVu; }
     public void setDichVu(DichVu value) { dichVu = value; }
     public String getSoPhong() { return soPhong; }
@@ -52,5 +46,5 @@ public class SuDungDichVu {
         if (thanhTien == null || soLuong == null || soLuong <= 0) return null;
         return thanhTien.divide(BigDecimal.valueOf(soLuong), 2, RoundingMode.HALF_UP);
     }
-    public String getTenDichVu() { return dichVu.getTenDichVu(); }
+    public String getTenDichVu() { return dichVu != null ? dichVu.getTenDichVu() : ""; }
 }

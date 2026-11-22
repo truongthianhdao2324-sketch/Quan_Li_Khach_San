@@ -169,17 +169,61 @@
             box-shadow: 0 0 0 0.2rem rgba(255, 117, 140, 0.2);
         }
 
-        /* Nhật ký đồng bộ mạng (Network Sync Log) */
-        .network-console {
-            background-color: #2b2126;
-            color: #8ce99a;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 12.5px;
-            border-radius: 12px;
-            padding: 14px 16px;
-            max-height: 150px;
+        /* --- NHẬT KÝ HOẠT ĐỘNG (ĐỒNG BỘ GIAO DIỆN NGƯỜI 2) --- */
+        .activity-log {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #f5dfe4;
+            border-radius: 15px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .activity-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .activity-log-header h3 {
+            margin: 0;
+            color: #593945;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .activity-log-header span {
+            color: #9b8490;
+            font-size: 12px;
+        }
+
+        .activity-log-content {
+            max-height: 300px;
             overflow-y: auto;
-            line-height: 1.55;
+        }
+
+        .activity-log-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-log-table th,
+        .activity-log-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #fae1dd;
+            font-size: 13px;
+        }
+
+        .activity-log-table th {
+            background: #fff0f3;
+            color: #593945;
+            font-weight: 700;
+        }
+
+        .activity-log-table td {
+            color: #6b4c58;
         }
 
         .receipt-sheet {
@@ -231,6 +275,9 @@
     <h2>👑 QUẢN TRỊ VIÊN</h2>
     <a th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
     <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+    <a th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
+    <a th:href="@{/admin/khachhang/danhsach}">🧑‍🤝‍🧑 Quản lý Khách hàng</a>
+    <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
     <a th:href="@{/admin/hoadon}" class="active">🧾 Quản lý Hóa Đơn</a>
     <a th:href="@{/dang-nhap}" style="margin-top: auto; margin-bottom: 0; color: #ff4d6d;">Đăng xuất</a>
 </aside>
@@ -400,17 +447,31 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <!-- Khung Nhật ký kết nối mạng từ Java URLConnection -->
-        <div class="mt-4">
-            <div class="mb-2">
-                <span class="small fw-bold" style="color: #593945;">
-                    📡 Nhật ký đồng bộ mạng Java (<code>java.net.URLConnection</code> ↔ <code>GET /api/hoadon/dong-bo</code>)
-                </span>
-            </div>
-            <div class="network-console">
-                <div th:each="logLine : ${nhatKyMang}" th:text="${logLine}"></div>
-            </div>
+    <!-- NHẬT KÝ HOẠT ĐỘNG (ĐỒNG BỘ GIAO DIỆN NGƯỜI 2) -->
+    <div class="activity-log">
+        <div class="activity-log-header">
+            <h3>🕒 NHẬT KÝ HOẠT ĐỘNG</h3>
+            <span>Ghi nhận nghiệp vụ thanh toán, in biên lai và đồng bộ hóa đơn</span>
+        </div>
+
+        <div class="activity-log-content">
+            <table class="activity-log-table">
+                <thead>
+                <tr>
+                    <th>Nội dung nhật ký</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(nhatKyHoaDon)}">
+                    <td>Chưa có lịch sử xử lý hóa đơn.</td>
+                </tr>
+                <tr th:each="log : ${nhatKyHoaDon}">
+                    <td th:text="${log}"></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

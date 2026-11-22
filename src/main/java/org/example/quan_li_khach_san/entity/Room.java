@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 public class Room {
 
     @Id
-    @Column(name = "so_phong", length = 20)
+    @Column(name = "so_phong", length = 10)
     private String soPhong;
 
     @Column(name = "trang_thai")

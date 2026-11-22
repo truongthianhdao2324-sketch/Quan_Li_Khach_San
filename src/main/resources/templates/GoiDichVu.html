@@ -1,18 +1,47 @@
 <!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/dichvu :: head('Ghi nhận dịch vụ và bồi thường')}"></head><body>
 <header th:replace="~{fragments/dichvu :: nav}"></header>
-<main class="container py-4"><div class="form-card mx-auto">
-  <h1>Ghi nhận dịch vụ và bồi thường</h1><p class="text-secondary">Chọn lượt đang lưu trú, dịch vụ hoặc khoản bồi thường theo đơn giá đã quy định.</p>
+<main class="container py-4"><div th:replace="~{fragments/dichvu :: tabs}"></div><div class="form-card mx-auto">
+  <h1>Ghi nhận dịch vụ và bồi thường</h1><p class="text-secondary">Dịch vụ lấy giá từ danh mục. Bồi thường do lễ tân nhập nội dung và đơn giá theo từng trường hợp.</p>
   <div th:replace="~{fragments/dichvu :: alerts}"></div>
   <p th:if="${#lists.isEmpty(luotO)}" class="alert alert-info">Chưa có khách đang lưu trú. Cần nhận phòng trước khi gọi dịch vụ.</p>
-  <p th:if="${#lists.isEmpty(dichVu)}" class="alert alert-info">Chưa có dịch vụ trong danh mục. Liên hệ quản trị viên để cập nhật danh mục.</p>
+  <p th:if="${#lists.isEmpty(dichVu)}" class="alert alert-info">Danh mục hiện chưa có dịch vụ. Vẫn có thể chọn Bồi thường để nhập khoản phát sinh.</p>
   <section class="card"><div class="card-body p-4"><form method="post" th:action="@{/dich-vu/goi}">
     <input type="hidden" name="_csrf" th:value="${session.dichVuCsrf}"><input type="hidden" name="maYeuCau" th:value="${maYeuCau}">
     <div class="mb-3"><label class="form-label" for="maDatPhong">Phòng và lượt lưu trú</label><select id="maDatPhong" class="form-select" name="maDatPhong" required><option value="">Chọn khách đang ở</option><option th:each="stay : ${luotO}" th:value="${stay.maDatPhong}" th:selected="${stay.maDatPhong == maDatPhong}" th:text="'Phòng ' + ${stay.room.soPhong} + ' · ' + ${stay.khachHang.hoTen} + ' · Lượt #' + ${stay.maDatPhong}"></option></select><p class="field-error" th:if="${loiLuotO}" th:text="${loiLuotO}"></p></div>
-    <div class="mb-3"><label class="form-label" for="maDichVu">Dịch vụ / khoản bồi thường và đơn giá</label><select id="maDichVu" class="form-select" name="maDichVu" required><option value="">Chọn dịch vụ hoặc khoản bồi thường</option><option th:each="item : ${dichVu}" th:value="${item.maDichVu}" th:selected="${item.maDichVu == maDichVu}" th:text="${item.tenDichVu} + ' · ' + ${@tienViet.dinhDang(item.giaDichVu)}"></option></select><p class="field-error" th:if="${loiDichVu}" th:text="${loiDichVu}"></p></div>
+    <div class="mb-3"><label for="loai" class="form-label">Loại khoản ghi nhận</label>
+      <select id="loai" name="loai" class="form-select" onchange="doiLoaiKhoan()">
+        <option value="dich-vu" th:selected="${loai != 'boi-thuong'}">Dịch vụ trong danh mục</option>
+        <option value="boi-thuong" th:selected="${loai == 'boi-thuong'}">Bồi thường</option>
+      </select><p class="field-error" th:if="${loiLoai}" th:text="${loiLoai}"></p></div>
+    <div id="chonDichVu" class="mb-3" th:hidden="${loai == 'boi-thuong'}">
+      <label class="form-label" for="maDichVu">Dịch vụ và đơn giá</label>
+      <select id="maDichVu" class="form-select" name="maDichVu" th:disabled="${loai == 'boi-thuong'}" th:required="${loai != 'boi-thuong'}">
+        <option value="">Chọn dịch vụ</option><option th:each="item : ${dichVu}" th:value="${item.maDichVu}" th:selected="${item.maDichVu == maDichVu}" th:text="${item.tenDichVu} + ' · ' + ${@tienViet.dinhDang(item.giaDichVu)}"></option>
+      </select><p class="field-error" th:if="${loiDichVu}" th:text="${loiDichVu}"></p></div>
+    <div id="nhapBoiThuong" th:hidden="${loai != 'boi-thuong'}">
+      <div class="mb-3"><label class="form-label" for="noiDung">Nội dung bồi thường</label>
+        <input id="noiDung" name="noiDung" class="form-control" maxlength="80" placeholder="Ví dụ: Làm vỡ bình hoa" th:value="${noiDung}" th:disabled="${loai != 'boi-thuong'}" th:required="${loai == 'boi-thuong'}">
+        <p class="field-error" th:if="${loiNoiDung}" th:text="${loiNoiDung}"></p></div>
+      <div class="mb-3"><label class="form-label" for="donGia">Đơn giá bồi thường (đồng)</label>
+        <input id="donGia" name="donGia" type="number" class="form-control" min="0.01" max="9999999999.99" step="0.01" th:value="${donGia}" th:disabled="${loai != 'boi-thuong'}" th:required="${loai == 'boi-thuong'}">
+        <p class="field-error" th:if="${loiDonGia}" th:text="${loiDonGia}"></p></div>
+    </div>
     <div class="mb-4"><label class="form-label" for="soLuong">Số lượng</label><input id="soLuong" class="form-control" type="number" name="soLuong" th:value="${soLuong}" min="1" max="999" step="1" required><p class="field-error" th:if="${loiSoLuong}" th:text="${loiSoLuong}"></p></div>
-    <p class="form-text">Ví dụ: khách làm vỡ bình hoa, chọn khoản “Bồi thường vỡ bình hoa” và nhập số lượng đồ bị hỏng. Nếu danh mục chưa có khoản phù hợp, liên hệ quản trị viên bổ sung trước.</p>
-    <button class="btn btn-rose w-100" th:disabled="${#lists.isEmpty(luotO) or #lists.isEmpty(dichVu)}">Xác nhận ghi nhận</button>
-    <p class="form-text mt-3 mb-0">Thành tiền được tính theo đơn giá trong danh mục và cộng vào hóa đơn của lượt ở. Nếu chưa gửi được thông báo, khoản tiền vẫn được lưu; có thể gửi lại trong lịch sử.</p>
+    <button class="btn btn-rose w-100" th:disabled="${#lists.isEmpty(luotO)}">Xác nhận ghi nhận</button>
+    <p class="form-text mt-3 mb-0">Thành tiền bằng đơn giá × số lượng và cộng vào hóa đơn của lượt ở. Nếu chưa gửi được thông báo, khoản tiền vẫn được lưu; có thể gửi lại trong lịch sử.</p>
   </form></div></section>
-</div></main><footer th:replace="~{fragments/dichvu :: footer}"></footer></body></html>
+</div></main><footer th:replace="~{fragments/dichvu :: footer}"></footer><script>
+function doiLoaiKhoan() {
+  const boiThuong = document.getElementById('loai').value === 'boi-thuong';
+  document.getElementById('chonDichVu').hidden = boiThuong;
+  document.getElementById('nhapBoiThuong').hidden = !boiThuong;
+  const dichVu = document.getElementById('maDichVu');
+  dichVu.disabled = boiThuong; dichVu.required = !boiThuong;
+  for (const ten of ['noiDung', 'donGia']) {
+    const oNhap = document.getElementById(ten);
+    oNhap.disabled = !boiThuong; oNhap.required = boiThuong;
+  }
+}
+doiLoaiKhoan();
+</script></body></html>

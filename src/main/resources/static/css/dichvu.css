@@ -20,21 +20,27 @@ body {
     background: var(--pink);
     box-shadow: 4px 0 15px rgba(253, 226, 228, .4);
 }
-.sidebar h2 { font-size: 19px; text-align: center; margin: 0 0 30px; color: var(--ink); }
-.main-menu { display: flex; flex-direction: column; gap: 8px; }
+.sidebar h2 { font-size: 19px; font-weight: 700; line-height: normal; text-align: center; margin: .83em 0 40px; color: var(--ink); }
+.main-menu { display: flex; flex-direction: column; gap: 0; }
 .sidebar a {
-    display: block;
-    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all .3s ease;
+    padding: 12px 18px;
+    margin-bottom: 12px;
+    font-size: 16px;
+    line-height: normal;
     border-radius: 12px;
     color: #6b4c58;
     text-decoration: none;
     font-weight: 600;
 }
-.sidebar a:hover, .sidebar a.active { background: var(--rose); color: white; }
+.sidebar a:hover, .sidebar a.active { background: var(--rose); color: white; transform: translateX(4px); box-shadow: 0 4px 12px rgba(255,117,140,.3); }
 .sidebar .service-menu { padding-left: 14px; border-left: 2px solid #e6b6c2; margin-left: 14px; }
 .sidebar .service-menu a { padding: 8px 10px; font-size: .9rem; font-weight: 400; }
 .sidebar .service-menu a.selected { background: #fff0f3; color: #a83453; font-weight: 600; }
-.sidebar .logout-link { margin-top: auto; color: #d94161; padding-top: 18px; }
+.sidebar .logout-link { margin-top: auto; color: #ff4d6d; }
 body > main.container { margin-left: 300px; width: calc(100% - 300px); max-width: none; padding: 32px !important; }
 body > footer.container { margin-left: 300px; width: calc(100% - 300px); max-width: none; padding-left: 32px; }
 .btn-rose { background: var(--rose); border-color: var(--rose); color: white; }
@@ -59,4 +65,58 @@ h1 { font-size: 26px; font-weight: 700; color: var(--ink); }
     body > main.container, body > footer.container { width: 100%; margin-left: 0; padding: 16px !important; }
     .card-body { padding: 1rem !important; }
     h1 { font-size: 1.4rem; }
+}
+
+.service-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.service-tabs a { padding: 8px 14px; color: #6b4c58; text-decoration: none; border-radius: 10px; border: 1px solid #f4d3dc; }
+.service-tabs a.selected, .service-tabs a:hover { background: #fde2e4; color: #a83453; }
+
+/* NÚT ĐĂNG XUẤT */
+.nut-dang-xuat{
+    margin-top: auto;
+    color: #ff4d6d;
+}
+.sidebar a.nut-dang-xuat {
+    margin-top: auto;
+    color: #ff4d6d;
+}
+
+.sidebar a.nut-dang-xuat:hover {
+    color: white;
+    background-color: #ff758c;
+}
+/* Thanh tab điều hướng trên cùng của module Dịch vụ */
+main > :first-child:has(a[href*="/dich-vu"]) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+}
+
+main > :first-child:has(a[href*="/dich-vu"]) a {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    background-color: #ffffff;
+    color: #6e565b;
+    border: 1px solid #f2d7dc;
+    transition: all 0.15s ease;
+}
+
+main > :first-child:has(a[href*="/dich-vu"]) a:hover {
+    background-color: #fff5f7;
+    border-color: #e8b8c2;
+    color: #4a3539;
+}
+
+main > :first-child:has(a[href*="/dich-vu"]) a.active,
+main > :first-child:has(a[href*="/dich-vu"]) a[aria-current="page"] {
+    background-color: #fce4e8;
+    border-color: #f5c6cf;
+    color: #b04a5a;
+    font-weight: 600;
 }

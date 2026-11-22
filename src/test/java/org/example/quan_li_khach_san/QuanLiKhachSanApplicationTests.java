@@ -1,15 +1,13 @@
 package org.example.quan_li_khach_san;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootApplication
-@EnableScheduling
-public class QuanLiKhachSanApplication {
+@SpringBootTest
+class QuanLiKhachSanApplicationTests {
 
-    public static void main(String[] args) {
-        SpringApplication.run(QuanLiKhachSanApplication.class, args);
+    @Test
+    void contextLoads() {
     }
 
 }

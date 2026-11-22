@@ -766,13 +766,33 @@
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <h2>🌸 KÊNH LỄ TÂN</h2>
-    <a th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
-    <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
-    <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
-    <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
-    <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
-    <a th:href="@{/dang-xuat}" style="margin-top: auto; color: #ff4d6d;">Đăng xuất</a>
+<!--    KENH-->
+    <h2 th:if="${session.user.vaiTro == 'ADMIN'}">👑 QUẢN TRỊ VIÊN</h2>
+    <h2 th:if="${session.user.vaiTro == 'RECEPTIONIST'}">🌸 KÊNH LỄ TÂN</h2>
+
+<!--ĐIỀU HƯỚNG CHUYỄN TRANG-->
+
+    <!-- Admin -->
+    <div th:if="${session.user.vaiTro == 'ADMIN'}">
+        <a th:href="@{/admin/dashboard}">📊 Thống kê doanh thu</a>
+        <a th:href="@{/admin/nhanvien}">👥 Quản lý Nhân sự</a>
+        <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
+        <a th:href="@{/admin/khachhang/danhsach}">🧑‍🤝‍🧑 Quản lý Khách hàng</a>
+        <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+        <a th:href="@{/admin/hoadon}">🧾 Quản lý Hóa Đơn</a>
+    </div>
+
+    <!-- Lễ tân -->
+    <div th:if="${session.user.vaiTro != 'ADMIN'}">
+        <a th:href="@{/letan/dashboard}" >🏠 Trang chủ Lễ tân</a>
+        <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
+        <a th:href="@{/khachhang/phong}" class="active">🛏️ Quản lý Phòng</a>
+        <a th:href="@{/checkin}">🛎️ Nhận phòng (Check-in)</a>
+        <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+        <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
+    </div>
+
+    <a th:href="@{/dang-nhap}" class="nut-dang-xuat">Đăng xuất</a>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -1050,6 +1070,12 @@
                                 ✅ Hoàn tất bảo trì
                             </button>
                         </form>
+                        <!-- Nút Nhận phòng hiện khi phòng đang Còn trống -->
+                        <a th:if="${p.trangThai == 'Còn trống'}"
+                           th:href="@{/checkin(soPhong=${p.soPhong})}"
+                           style="display: inline-block; margin-top: 8px; padding: 7px 14px; border-radius: 10px; background-color: #ff758c; color: #fff; text-decoration: none; font-size: 13px; font-weight: 600;">
+                            🛎️ Nhận phòng
+                        </a>
 
                     </div>
 

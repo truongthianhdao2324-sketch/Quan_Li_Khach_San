@@ -226,13 +226,6 @@ public class RoomController {
         }
         room.setTrangThai("Còn trống");
 
-        // Kiểm tra trạng thái
-//        if (room.getTrangThai() == null
-//                || !danhSachTrangThai.contains(room.getTrangThai())) {
-//            bindingResult.rejectValue("trangThai", "invalid",
-//                    "Vui lòng chọn trạng thái hợp lệ");
-//        }
-
         if (bindingResult.hasErrors()) {
             model.addAttribute("danhSachLoaiPhong", roomRepository.findAllLoaiPhong());
             return "ThemPhong";
@@ -246,30 +239,42 @@ public class RoomController {
     }
 
 // ================= SỬA PHÒNG =================
-    @GetMapping("/phong/sua/{soPhong}")
-    public String hienThiFormSua(
-            @PathVariable String soPhong,
-            HttpSession session,
-            Model model,
-            RedirectAttributes redirectAttributes) {
+@GetMapping("/phong/sua/{soPhong}")
+public String hienThiFormSua(
+        @PathVariable String soPhong,
+        HttpSession session,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
-        if (!laAdmin(session)) {
-            return "redirect:/khachhang/phong";
-        }
-
-        Room phong = roomRepository.findById(soPhong).orElse(null);
-
-        if (phong == null) {
-            redirectAttributes.addFlashAttribute(
-                    "loi", "Không tìm thấy phòng cần sửa!");
-            return "redirect:/khachhang/phong";
-        }
-
-        model.addAttribute("room", phong);
-        model.addAttribute("danhSachLoaiPhong", roomRepository.findAllLoaiPhong());
-
-        return "SuaPhong";
+    if (!laAdmin(session)) {
+        return "redirect:/khachhang/phong";
     }
+
+    Room phong = roomRepository.findById(soPhong).orElse(null);
+
+    if (phong == null) {
+        redirectAttributes.addFlashAttribute(
+                "loi", "Không tìm thấy phòng cần sửa!");
+
+        return "redirect:/khachhang/phong";
+    }
+
+    if ("Đã có khách".equals(phong.getTrangThai())) {
+        redirectAttributes.addFlashAttribute(
+                "loi",
+                "Phòng " + phong.getSoPhong()
+                        + " đang có khách, không sửa được!");
+
+        return "redirect:/khachhang/phong";
+    }
+
+    model.addAttribute("room", phong);
+    model.addAttribute(
+            "danhSachLoaiPhong",
+            roomRepository.findAllLoaiPhong());
+
+    return "SuaPhong";
+}
 
     @PostMapping("/phong/sua/{soPhong}")
     public String suaPhong(
@@ -289,6 +294,15 @@ public class RoomController {
         if (phong == null) {
             redirectAttributes.addFlashAttribute(
                     "loi", "Không tìm thấy phòng cần sửa!");
+            return "redirect:/khachhang/phong";
+        }
+
+        if ("Đã có khách".equals(phong.getTrangThai())) {
+            redirectAttributes.addFlashAttribute(
+                    "loi",
+                    "Phòng [" + phong.getSoPhong()
+                            + "] đang có khách, không sửa được!");
+
             return "redirect:/khachhang/phong";
         }
 

@@ -91,7 +91,9 @@ public class DichVuController {
     }
 
     @GetMapping("/goi")
-    public String goi(@RequestParam(required = false) Long maDatPhong, Model model) {
+    public String goi(@RequestParam(required = false) Long maDatPhong,
+                      @RequestParam(defaultValue = "dich-vu") String loai, Model model) {
+        model.addAttribute("loai", "boi-thuong".equals(loai) ? loai : "dich-vu");
         napFormGoi(model, maDatPhong, null, "1", UUID.randomUUID().toString());
         return "GoiDichVu";
     }
@@ -111,32 +113,55 @@ public class DichVuController {
                           @RequestParam(required = false) Long maDichVu,
                           @RequestParam(defaultValue = "") String soLuong,
                           @RequestParam(defaultValue = "") String maYeuCau,
+                          @RequestParam(defaultValue = "dich-vu") String loai,
+                          @RequestParam(defaultValue = "") String noiDung,
+                          @RequestParam(defaultValue = "") String donGia,
                           HttpSession phien, Model model, RedirectAttributes thongBao) {
+        boolean boiThuong = "boi-thuong".equals(loai);
+        model.addAttribute("loai", boiThuong ? "boi-thuong" : "dich-vu");
+        model.addAttribute("noiDung", noiDung);
+        model.addAttribute("donGia", donGia);
+        if (!boiThuong && !"dich-vu".equals(loai)) model.addAttribute("loiLoai", "Chọn loại khoản cần ghi nhận.");
         Integer soLuongNhap = null;
+        BigDecimal giaNhap = null;
+        if (boiThuong) {
+            noiDung = noiDung.strip();
+            if (noiDung.isEmpty() || noiDung.length() > 80 || noiDung.chars().anyMatch(c -> Character.isISOControl(c) || c == '|'))
+                model.addAttribute("loiNoiDung", "Nhập nội dung từ 1 đến 80 ký tự, không chứa dấu | hoặc xuống dòng.");
+            try {
+                giaNhap = new BigDecimal(donGia.strip());
+                if (giaNhap.signum() <= 0 || giaNhap.compareTo(new BigDecimal("9999999999.99")) > 0 || giaNhap.stripTrailingZeros().scale() > 2)
+                    throw new NumberFormatException();
+            } catch (NumberFormatException loi) { model.addAttribute("loiDonGia", "Nhập đơn giá lớn hơn 0, tối đa 9.999.999.999,99 và hai số thập phân."); }
+        }
         if (maDatPhong == null) model.addAttribute("loiLuotO", "Chọn lượt đang lưu trú.");
-        if (maDichVu == null) model.addAttribute("loiDichVu", "Chọn dịch vụ.");
+        if (!boiThuong && maDichVu == null) model.addAttribute("loiDichVu", "Chọn dịch vụ.");
         try {
             soLuongNhap = Integer.valueOf(soLuong);
             if (soLuongNhap < 1 || soLuongNhap > 999) throw new NumberFormatException();
         } catch (NumberFormatException loi) { model.addAttribute("loiSoLuong", "Nhập số lượng nguyên từ 1 đến 999."); }
-        if (maDatPhong == null || maDichVu == null || soLuongNhap == null || soLuongNhap < 1 || soLuongNhap > 999) {
+        if (maDatPhong == null || (!boiThuong && maDichVu == null) || soLuongNhap == null || soLuongNhap < 1 || soLuongNhap > 999
+                || model.containsAttribute("loiLoai") || model.containsAttribute("loiNoiDung") || model.containsAttribute("loiDonGia")) {
             napFormGoi(model, maDatPhong, maDichVu, soLuong, maYeuCau);
             return "GoiDichVu";
         }
         Long id;
         try {
             if (!UUID.fromString(maYeuCau).toString().equalsIgnoreCase(maYeuCau)) throw new IllegalArgumentException();
-            String noiDung = maDatPhong + "|" + maDichVu + "|" + soLuongNhap;
+            String dauVan = boiThuong
+                    ? "boi-thuong|" + maDatPhong + "|" + noiDung + "|" + giaNhap.stripTrailingZeros().toPlainString() + "|" + soLuongNhap
+                    : maDatPhong + "|" + maDichVu + "|" + soLuongNhap;
             // Hai lần bấm của cùng một form trong phiên chỉ lưu một lần.
             synchronized (phien) {
                 Map<String, String> daLuu = yeuCauDaLuu(phien);
                 String cu = daLuu.get(maYeuCau.toLowerCase(Locale.ROOT));
                 if (cu != null) {
-                    if (!cu.startsWith(noiDung + "|")) throw new DichVuException("Yêu cầu đã được lưu với nội dung khác. Hãy mở lại form.");
+                    if (!cu.startsWith(dauVan + "|")) throw new DichVuException("Yêu cầu đã được lưu với nội dung khác. Hãy mở lại form.");
                     id = Long.valueOf(cu.substring(cu.lastIndexOf('|') + 1));
                 } else {
-                    id = dichVuService.goiDichVu(maDatPhong, maDichVu, soLuongNhap);
-                    daLuu.put(maYeuCau.toLowerCase(Locale.ROOT), noiDung + "|" + id);
+                    id = boiThuong ? dichVuService.ghiNhanBoiThuong(maDatPhong, noiDung, giaNhap, soLuongNhap)
+                            : dichVuService.goiDichVu(maDatPhong, maDichVu, soLuongNhap);
+                    daLuu.put(maYeuCau.toLowerCase(Locale.ROOT), dauVan + "|" + id);
                     if (daLuu.size() > 100) daLuu.remove(daLuu.keySet().iterator().next());
                 }
             }
@@ -151,8 +176,8 @@ public class DichVuController {
         }
         boolean daGui = thongBaoService.guiLai(id, maDatPhong);
         thongBao.addFlashAttribute(daGui ? "success" : "warning", daGui
-                ? "Đã lưu khoản dịch vụ #" + id + " và chuyển thông báo tới bộ phận phục vụ."
-                : "Đã lưu khoản dịch vụ #" + id + ". Chưa chuyển được thông báo; có thể gửi lại trong lịch sử, không tính thêm tiền.");
+                ? "Đã lưu khoản phát sinh #" + id + " và chuyển thông báo tới bộ phận phục vụ."
+                : "Đã lưu khoản phát sinh #" + id + ". Chưa chuyển được thông báo; có thể gửi lại trong lịch sử, không tính thêm tiền.");
         return "redirect:/dich-vu/lich-su?maDatPhong=" + maDatPhong;
     }
 

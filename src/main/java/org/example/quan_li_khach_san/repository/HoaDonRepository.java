@@ -13,48 +13,39 @@ import java.util.Optional;
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
-    // ===Tìm kiếm theo từ khóa (Mã HĐ dạng HD0001, Số phòng, Tên khách) & lọc trạng thái trực tiếp trên DB===
-    @Query("""
-        SELECT h FROM HoaDon h
-        LEFT JOIN h.datPhong dp
-        LEFT JOIN dp.khachHang kh
-        WHERE (:trangThai IS NULL OR :trangThai = '' OR LOWER(h.trangThai) = LOWER(:trangThai))
-          AND (:tuKhoa IS NULL OR :tuKhoa = ''
-               OR LOWER(CONCAT('HD', SUBSTRING(CAST(10000 + h.maHoaDon AS string), 2, 4))) LIKE LOWER(CONCAT('%', :tuKhoa, '%'))
-               OR LOWER(dp.soPhong) LIKE LOWER(CONCAT('%', :tuKhoa, '%'))
-               OR LOWER(kh.hoTen) LIKE LOWER(CONCAT('%', :tuKhoa, '%')))
-        ORDER BY h.maHoaDon ASC
-    """)
+    Optional<HoaDon> findFirstByMaDatPhongOrderByMaHoaDonAsc(Long maDatPhong);
 
-    List<HoaDon> timKiemHoaDon(@Param("tuKhoa") String tuKhoa, @Param("trangThai") String trangThai);
+    default Optional<HoaDon> findByMaDatPhong(Long maDatPhong) {
+        return findFirstByMaDatPhongOrderByMaHoaDonAsc(maDatPhong);
+    }
 
-    // ==== Lấy danh sách hóa đơn theo trạng thái ====
-    List<HoaDon> findByTrangThaiOrderByNgayLapDesc(String trangThai);
+    long countByTrangThai(String trangThai);
 
-    // 3. Kiểm tra hóa đơn theo mã đặt phòng (tránh xuất trùng hóa đơn)
-    Optional<HoaDon> findByMaDatPhong(Long maDatPhong);
-
-    // ===Truy vấn hóa đơn theo số phòng====
-    @Query("SELECT h FROM HoaDon h WHERE h.datPhong.soPhong = :soPhong ORDER BY h.ngayLap DESC")
-    List<HoaDon> findBySoPhong(@Param("soPhong") String soPhong);
-
-    // ===Tính tổng doanh thu các hóa đơn đã thanh toán (COALESCE tránh trả về null)===
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.trangThai = 'Đã thanh toán'")
+    @Query("SELECT COALESCE(SUM(h.tongTien), 0.0) FROM HoaDon h WHERE h.trangThai = 'Đã thanh toán'")
     Double tinhTongDoanhThu();
 
-    // ===Thống kê doanh thu theo khoảng thời gian =====
-    @Query("""
-        SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h
-        WHERE h.trangThai = 'Đã thanh toán' AND h.ngayLap BETWEEN :tuNgay AND :denNgay
-    """)
+    @Query("SELECT COALESCE(SUM(h.tongTien), 0.0) FROM HoaDon h " +
+            "WHERE h.trangThai = 'Đã thanh toán' " +
+            "AND h.ngayLap >= :tuNgay AND h.ngayLap <= :denNgay")
     Double tinhDoanhThuTheoThoiGian(@Param("tuNgay") LocalDateTime tuNgay,
                                     @Param("denNgay") LocalDateTime denNgay);
 
-    // === Đếm số hóa đơn theo trạng thái====
-    long countByTrangThai(String trangThai);
-
-    // ==== Lấy tổng tiền dịch vụ phát sinh từ bảng dịch vụ  theo mã đặt phòng====
-
-    @Query(value = "SELECT COALESCE(SUM(thanh_tien), 0) FROM su_dung_dich_vu WHERE ma_dat_phong = :maDatPhong", nativeQuery = true)
+    @Query("SELECT COALESCE(SUM(CAST(s.thanhTien AS double)), 0.0) " +
+            "FROM SuDungDichVu s " +
+            "WHERE EXISTS (" +
+            "    SELECT d.maDatPhong FROM DatPhong d " +
+            "    WHERE d.maDatPhong = :maDatPhong " +
+            "      AND d.soPhong = s.soPhong " +
+            "      AND (s.soGiayTo IS NULL OR s.soGiayTo = '' OR d.khachHang.soGiayTo = s.soGiayTo) " +
+            "      AND (s.ngaySuDung IS NULL OR s.ngaySuDung >= d.ngayNhanPhong) " +
+            "      AND (d.ngayTraPhong IS NULL OR s.ngaySuDung IS NULL OR s.ngaySuDung <= d.ngayTraPhong)" +
+            ")")
     Double tinhTongTienDichVuTheoDatPhong(@Param("maDatPhong") Long maDatPhong);
+
+    @Query("SELECT h FROM HoaDon h " +
+            "LEFT JOIN FETCH h.datPhong dp " +
+            "LEFT JOIN FETCH dp.khachHang kh " +
+            "WHERE (:trangThai IS NULL OR :trangThai = '' OR h.trangThai = :trangThai) " +
+            "ORDER BY h.maHoaDon ASC")
+    List<HoaDon> layDanhSachTheoTrangThai(@Param("trangThai") String trangThai);
 }

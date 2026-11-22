@@ -8,7 +8,8 @@ import jakarta.persistence.LockModeType;
 import java.util.*;
 
 public interface DichVuRepository extends JpaRepository<DichVu, Long> {
-    Page<DichVu> findByTenDichVuContainingIgnoreCase(String keyword, Pageable pageable);
+    @Query("select d from DichVu d where lower(d.tenDichVu) like lower(concat('%', :keyword, '%')) and d.tenDichVu not like 'Bồi thường: %'")
+    Page<DichVu> findByTenDichVuContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
     List<DichVu> findAllByOrderByTenDichVuAsc();
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select d from DichVu d where d.maDichVu = :id")

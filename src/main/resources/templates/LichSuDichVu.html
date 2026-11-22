@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/dichvu :: head('Lịch sử dịch vụ')}"></head><body>
 <header th:replace="~{fragments/dichvu :: nav}"></header>
-<main class="container py-4"><h1>Lịch sử dịch vụ theo lượt ở</h1><p class="text-secondary">Dịch vụ và khoản bồi thường được ghi riêng theo từng lượt lưu trú, kể cả khi khách quay lại cùng phòng.</p>
+<main class="container py-4"><div th:replace="~{fragments/dichvu :: tabs}"></div><h1>Lịch sử dịch vụ theo lượt ở</h1><p class="text-secondary">Dịch vụ và khoản bồi thường được ghi riêng theo từng lượt lưu trú, kể cả khi khách quay lại cùng phòng.</p>
   <div th:replace="~{fragments/dichvu :: alerts}"></div>
   <section class="card mb-4"><div class="card-body p-4"><form method="get" th:action="@{/dich-vu/lich-su}" class="row g-2 align-items-end">
     <div class="col-md-9"><label for="stay" class="form-label">Lượt đang lưu trú</label><select id="stay" name="maDatPhong" class="form-select" required><option value="">Chọn lượt ở</option><option th:each="stay : ${luotO}" th:value="${stay.maDatPhong}" th:selected="${selectedStay != null and selectedStay.maDatPhong == stay.maDatPhong}" th:text="'Phòng ' + ${stay.room.soPhong} + ' · ' + ${stay.khachHang.hoTen} + ' · #' + ${stay.maDatPhong}"></option></select></div><div class="col-md-3"><button class="btn btn-rose w-100">Xem lịch sử</button></div>
