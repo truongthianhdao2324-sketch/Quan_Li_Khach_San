@@ -13,7 +13,6 @@
     <a th:href="${dichVuAdmin} ? @{/admin/dashboard} : @{/letan/dashboard}">🏠 Trang chủ</a>
     <a th:href="@{/khachhang/danhsach}">👥 Quản lý Khách hàng</a>
     <a th:href="@{/khachhang/phong}">🛏️ Quản lý Phòng</a>
-    <a th:href="@{/checkin}">🛎️ Nhận phòng (Check-in)</a>
     <a th:if="${dichVuAdmin}" th:href="@{/admin/nhanvien}">👤 Quản lý Nhân viên</a>
     <a class="active" aria-current="page" th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
     <div class="service-menu" aria-label="Chức năng dịch vụ">
@@ -23,7 +22,7 @@
     </div>
     <a th:href="${dichVuAdmin} ? @{/admin/hoadon} : @{/hoadon/danhsach}">📄 Quản lý Hóa đơn</a>
   </nav>
-  <a class="logout-link nut-dang-xuat" th:href="@{/dang-xuat}">Đăng xuất</a>
+  <a class="logout-link" th:href="@{/dang-xuat}">Đăng xuất</a>
 </aside>
 <div th:fragment="alerts" aria-live="polite">
   <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>

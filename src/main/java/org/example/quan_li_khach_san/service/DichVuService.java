@@ -65,7 +65,7 @@ public class DichVuService {
         if (gia == null || gia.signum() < 0 || gia.compareTo(new BigDecimal("9999999999.99")) > 0 || gia.stripTrailingZeros().scale() > 2)
             throw new DichVuException("Đơn giá phải từ 0 đến 9.999.999.999,99 và tối đa 2 số thập phân.");
         DichVu dichVu = id == null ? new DichVu() : dichVuRepository.findLockedById(id)
-                                                    .orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy dịch vụ."));
+                .orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy dịch vụ."));
         dichVu.setTenDichVu(ten.trim());
         dichVu.setGiaDichVu(gia.setScale(2, RoundingMode.UNNECESSARY));
         dichVuRepository.save(dichVu);
@@ -85,10 +85,7 @@ public class DichVuService {
             throw new DichVuException("Chọn lượt lưu trú, dịch vụ và số lượng nguyên từ 1 đến 999.");
         DatPhong luotO = datPhongRepository.findLockedById(maDatPhong)
                 .orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy lượt lưu trú."));
-        if (!luotO.isDangLuuTru())
-            throw new DichVuException("Chỉ được gọi dịch vụ cho lượt đang lưu trú và chưa trả phòng.");
-        if (luotO.getKhachHang() == null || luotO.getKhachHang().getSoGiayTo() == null)
-            throw new DichVuException("Lượt lưu trú chưa có thông tin giấy tờ khách hàng.");
+        if (!luotO.isDangLuuTru()) throw new DichVuException("Chỉ được gọi dịch vụ cho lượt đang lưu trú và chưa trả phòng.");
         DichVu dichVu = dichVuRepository.findLockedById(maDichVu)
                 .orElseThrow(() -> new DichVuNotFoundException("Không tìm thấy dịch vụ."));
         SuDungDichVu suDung = new SuDungDichVu();

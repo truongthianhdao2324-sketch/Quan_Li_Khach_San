@@ -39,12 +39,19 @@
     </nav>
 </aside>
 
-<main class="main-content flex-grow-1 overflow-auto">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <h1 class="fw-bold page-title m-0">Quản Lý Hồ Sơ Khách Hàng</h1>
-        <a th:href="@{/khachhang/them}" class="btn btn-pink px-3 py-2">
-            <i class="fa-solid fa-user-plus me-1"></i>Thêm Khách Hàng Mới
-        </a>
+    <a th:href="@{/letan/dashboard}">🏠 Trang chủ Lễ tân</a>
+    <a th:href="@{/khachhang/danhsach}" class="active">👥 Quản lý Khách hàng</a>
+    <a th:href="@{/khachhang/phong}"> 🛏️ Quản lý Phòng</a>
+     <a th:href="@{/dich-vu}">🧾 Quản lý Dịch vụ</a>
+    <a th:href="@{/hoadon/danhsach}">🧾 Quản lý Hóa đơn</a>
+    <a th:href="@{/dang-xuat}" style="margin-top: auto; color: #ff4d6d;"> Đăng xuất</a>
+</div>
+
+<!-- KHUNG NỘI DUNG CHÍNH -->
+<div class="main-content">
+
+    <div class="header-title">
+        <h1>Danh Sách Khách Hàng Lưu Trú</h1>
     </div>
 
     <div th:if="${success}" class="alert alert-success alert-dismissible fade show rounded-3 mt-3 mb-0" role="alert">

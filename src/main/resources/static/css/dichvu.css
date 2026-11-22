@@ -60,18 +60,3 @@ h1 { font-size: 26px; font-weight: 700; color: var(--ink); }
     .card-body { padding: 1rem !important; }
     h1 { font-size: 1.4rem; }
 }
-
-/* NÚT ĐĂNG XUẤT */
-.nut-dang-xuat{
-    margin-top: auto;
-    color: #ff4d6d;
-}
-.sidebar a.nut-dang-xuat {
-    margin-top: auto;
-    color: #ff4d6d;
-}
-
-.sidebar a.nut-dang-xuat:hover {
-    color: white;
-    background-color: #ff758c;
-}

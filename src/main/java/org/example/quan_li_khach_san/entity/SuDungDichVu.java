@@ -52,5 +52,5 @@ public class SuDungDichVu {
         if (thanhTien == null || soLuong == null || soLuong <= 0) return null;
         return thanhTien.divide(BigDecimal.valueOf(soLuong), 2, RoundingMode.HALF_UP);
     }
-    public String getTenDichVu() { return dichVu != null ? dichVu.getTenDichVu() : ""; }
+    public String getTenDichVu() { return dichVu.getTenDichVu(); }
 }
